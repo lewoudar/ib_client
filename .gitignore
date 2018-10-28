@@ -1,0 +1,10 @@
+.idea/
+.pytest_cache/
+.coverage
+htmlcov/
+# byte-compiled / optimized
+__pycache__/
+*.pyc
+*.egg-info/
+*.json
+app.py
