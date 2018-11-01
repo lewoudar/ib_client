@@ -19,6 +19,14 @@ class SearchOnlyFieldError(IBError):
     pass
 
 
+class UnknownReturnTypeError(IBError):
+    pass
+
+
+class FieldError(IBError):
+    pass
+
+
 class NotFoundError(IBError):
     pass
 
@@ -27,7 +35,7 @@ class ObjectNotFoundError(NotFoundError):
     pass
 
 
-class FieldNotFoundError(NotFoundError):
+class FieldNotFoundError(NotFoundError, FieldError):
     pass
 
 

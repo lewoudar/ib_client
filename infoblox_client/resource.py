@@ -1,8 +1,10 @@
+import re
 from typing import Tuple, List, Dict, Any, Union
 
 import requests
 
-from .exceptions import FieldNotFoundError, FunctionNotFoundError, BadParameterError, SearchOnlyFieldError
+from .exceptions import FieldNotFoundError, FunctionNotFoundError, BadParameterError, SearchOnlyFieldError, \
+    UnknownReturnTypeError, FieldError
 from .helpers import url_join, handle_http_error
 from .types import Schema
 
@@ -57,7 +59,7 @@ class Resource:
         if not support_string:
             return []
         supports = [char for char in support_string]
-        support_information = {'r': 'read', 's': 'search', 'u': 'update', 'w': 'create'}
+        support_information = {'r': 'read', 's': 'search', 'u': 'update', 'w': 'write'}
         return [support_information[support] for support in supports
                 if support in support_information]
 
@@ -65,19 +67,38 @@ class Resource:
     def _get_field_searchable_information(searchable_string: str) -> List[str]:
         return [search_char for search_char in searchable_string]
 
+    def _get_struct_field_information(self, field: dict) -> dict:
+        """
+        Get struct field information
+        :param field: dict representing field information
+        """
+        for struct_info in field['schema']['fields']:
+            if struct_info.get('wapi_primitive', '') == 'struct':
+                self._get_struct_field_information(struct_info)
+            else:
+                struct_info['supports'] = self._get_field_support_information(struct_info.get('supports', ''))
+                struct_info['searchable_by'] = self._get_field_searchable_information(
+                    struct_info.get('searchable_by', '')
+                )
+        return field
+
     def _get_field_information(self, field: dict) -> dict:
         """
         Process, transform and return field information.
-        :param field: a dictionary representing field information.
+        :param field: a dictionary representing non struct field information.
         """
         new_field = dict(field)
         new_field['supports'] = self._get_field_support_information(new_field.get('supports', ''))
+
+        if new_field.get('wapi_primitive', '') == 'struct':
+            return self._get_struct_field_information(new_field)
+
         new_field['searchable_by'] = self._get_field_searchable_information(
             new_field.get('searchable_by', '')
         )
         return new_field
 
-    def get_field_information(self, name: str) -> Dict[str, Any]:
+    def get_field_information(self, name: str) -> dict:
         """
         Returns detailed information about a field.
         :param name: field name.
@@ -88,7 +109,7 @@ class Resource:
             if field['name'] == name:
                 return self._get_field_information(field)
 
-    def get_function_information(self, name: str) -> Dict[str, Any]:
+    def get_function_information(self, name: str) -> dict:
         if name not in self._functions:
             raise FunctionNotFoundError(f'function {name} does not exist for {self._name} object.')
         for field in self._schema['fields']:
@@ -114,10 +135,112 @@ class Resource:
                 continue
             if not isinstance(field, str):
                 raise BadParameterError(f'{error_prefix}, but you provide {field}')
+            if '.' in field.strip('.'):  # we don't check sub object field
+                continue
             # we need to make sure that the field we want to recover is not read-only
             field_info = self.get_field_information(field)
             if field_info['supports'] == ['search']:
                 raise SearchOnlyFieldError(f'{field} is a search only field. It cannot be returned')
+
+    @staticmethod
+    def _validate_return_type(return_type: str) -> None:
+        """Validates if the return type is correct."""
+        return_types = ['json', 'xml', 'xml-pretty', 'json-pretty']
+        if return_type not in return_types:
+            raise UnknownReturnTypeError(f'{return_type} is not a valid return type. Valid values are {return_types}')
+
+    @staticmethod
+    def _get_type_mapping(field_types: List[str]) -> tuple:
+        """Translates field types to python types and returns it."""
+        returned_types = []
+        for _type in field_types:
+            if _type in ['int', 'uint', 'timestamp']:
+                returned_types.append(int)
+            elif _type == 'bool':
+                returned_types.append(bool)
+            else:
+                returned_types.append(str)
+        return tuple(returned_types)
+
+    @staticmethod
+    def _check_single_field_value(name: str = None, value: Any = None, valid_types: tuple = None,
+                                  field_types: List[str] = None, is_struct: bool = False,
+                                  is_list: bool = False) -> None:
+        """
+        Helper method fof method _check_field_value which check field value and raises error if needed with
+        with appropriate message.
+        :param name: field name.
+        :param value: field value.
+        :param valid_types: list of valid python types for field value.
+        :param field_types: list of valid value types defined in wapi documentation.
+        :param is_struct: boolean to know if wapi_primitive is struct.
+        :param is_list: boolean to know if the value is part of a list.
+        """
+        if is_struct:
+            error_message = f'{name} must be a dict but you provide {value}'
+        else:
+            error_message = f'{name} must have one of the following types: {field_types} but you provide {value}'
+        # we add a prefix message for list items
+        if is_list:
+            error_message = f'each item of {error_message}'
+        if not isinstance(value, valid_types):
+            raise FieldError(error_message)
+
+    def _check_field_value(self, name: str = None, value: Any = None, field_info: Schema = None) -> None:
+        """
+        Checks that field value corresponds to what is known in the documentation.
+        :param name: field name.
+        :param value: field value.
+        :param field_info: field information. Look at method get_field_information.
+        """
+        field_information = field_info or self.get_field_information(name)
+        is_array: bool = field_information['is_array']
+        wapi_primitive: str = field_information.get('wapi_primitive', '')
+        enum_values: List[Any] = field_information.get('enum_values', [])
+        field_types: list = field_information['type']
+
+        # we check enum values
+        if enum_values:
+            if value not in enum_values:
+                raise FieldError(f'{name} must have one of the following values: {enum_values} but you provide {value}')
+            return
+        # we check non array values
+        if not is_array:
+            if wapi_primitive and wapi_primitive == 'struct':
+                # todo: recursive control.
+                self._check_single_field_value(name, value, (dict,), field_types, is_struct=True)
+            else:
+                self._check_single_field_value(name, value, self._get_type_mapping(field_types), field_types)
+            return
+        # whe check array values
+        if not isinstance(value, list):
+            raise FieldError(f'{name} must be a list of values, but you provide {value}')
+        for item in value:
+            if wapi_primitive and wapi_primitive == 'struct':
+                # todo: recursive control.
+                self._check_single_field_value(name, item, (dict,), field_types, is_struct=True, is_list=True)
+            else:
+                self._check_single_field_value(name, item, self._get_type_mapping(field_types), field_types,
+                                               is_list=True)
+
+    def _validate_params(self, params: Dict[str, Any]) -> None:
+        """
+        Validates query string parameters passed to GET operation to filter results.
+        :param params:a dict of parameters to validate.
+        """
+        for name, value in params.items():
+            if name[0] == '*':  # we don't handle extensible attributes
+                continue
+            parts = re.split(r'([~=<>!])', name)
+            search_modifiers = parts[1::2]
+
+            field_name = parts[0]
+            field_info: Schema = self.get_field_information(field_name)
+            for modifier in search_modifiers:
+                if modifier not in field_info['searchable_by']:
+                    raise FieldError(f'{modifier} is not a valid modifier for field {field_name}')
+
+            self._check_field_value(field_name, value)
 
     def get(self, max_results: int = 1000, params: dict = None, return_fields: List[str] = None,
             return_fields_plus: List[str] = None, return_as_object: bool = False, paging: bool = False,
@@ -135,6 +258,13 @@ class Resource:
          'xml-pretty'
         :return: a dict or list of dicts.
         """
+        # returned fields validation
+        self._validate_return_fields(return_fields)
+        self._validate_return_fields(return_fields_plus)
+        # validate return type
+        self._validate_return_type(return_type)
+        # validate params
+        self._validate_params(params)
 
     def get_all_objects(self):
         pass
