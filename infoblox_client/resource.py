@@ -12,9 +12,9 @@ from .types import Schema
 class Resource:
 
     def __init__(self, session: requests.Session, wapi_url: str, name: str):
-        self._url = wapi_url
-        self._session = session
         self._name = name
+        self._url = url_join(wapi_url, self._name)
+        self._session = session
         self._schema: Schema = None
         self._load_schema()
         self._fields, self._functions = self._get_fields_and_functions()
@@ -38,7 +38,7 @@ class Resource:
     def _load_schema(self) -> None:
         """Loads the model schema."""
         params = {'_schema': '1', '_schema_version': '2', '_get_doc': '1'}
-        response = self._session.get(url_join(self._url, self._name), params=params)
+        response = self._session.get(self._url, params=params)
         handle_http_error(response)
         self._schema = response.json()
 
@@ -243,17 +243,16 @@ class Resource:
             self._check_field_value(field_name, value)
 
     def get(self, max_results: int = 1000, params: dict = None, return_fields: List[str] = None,
-            return_fields_plus: List[str] = None, return_as_object: bool = False, paging: bool = False,
-            proxy_search: str = None, return_type: str = None) -> Union[dict, list]:
+            return_fields_plus: List[str] = None, paging: bool = False, proxy_search: str = None,
+            return_type: str = None) -> Union[dict, list]:
         """
         Performs infoblox get operations.
         :param max_results: number of objects to return.
         :param params: query parameters to filter results. Look wapi documentation, for more information.
         :param return_fields: default object fields to return.
         :param return_fields_plus: additional object fields, extensible attributes to return in addition of
-        :param return_as_object: boolean which must be true to perform paging requests.
         :param paging: boolean to perform paging requests.
-        :param proxy_search: 'GM' or 'local'. See wapi documentation for more information.
+        :param proxy_search: 'GM' or 'LOCAL'. See wapi documentation for more information.
         :param return_type: data format for returned values. Possible values are 'json', 'json-pretty', 'xml',
          'xml-pretty'
         :return: a dict or list of dicts.
@@ -265,6 +264,22 @@ class Resource:
         self._validate_return_type(return_type)
         # validate params
         self._validate_params(params)
+
+        parameters = {}
+        if return_fields is not None:
+            parameters['_return_fields'] = ','.join(return_fields)
+        if return_fields_plus is not None:
+            parameters['_return_fields+'] = ','.join(return_fields_plus)
+        if proxy_search is not None:
+            proxies = ['GM', 'LOCAL']
+            if proxy_search.upper() not in ['GM', 'LOCAL']:
+                raise BadParameterError(f'proxy_search must be in {proxies} but you provide: {proxy_search}')
+            parameters['_proxy_search'] = proxy_search.upper()
+
+        response = self._session.get(self._url, params=parameters)
+        handle_http_error(response)
+
+        return response.json()
 
     def get_all_objects(self):
         pass
