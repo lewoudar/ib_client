@@ -8,13 +8,11 @@ python_version = "3.7"
 
 [dev-packages]
 flask = "*"
-pytest = "*"
 pytest-mock = "*"
 pytest-responses = "*"
 pytest-cov = "*"
+pytest = "*"
 
 [packages]
 requests = "*"
-marshmallow = "*"
 click = "*"
-pytest = "*"
