@@ -24,4 +24,4 @@ def handle_http_error(response: requests.Response) -> None:
             error_message = response.json()
         except json.JSONDecodeError:
             error_message = response.text
-        raise HttpError(error_message)
+        raise HttpError(response.status_code, error_message)

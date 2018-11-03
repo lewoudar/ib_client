@@ -1,5 +1,5 @@
 import re
-from typing import Tuple, List, Dict, Any, Union
+from typing import List, Dict, Any, Union, Iterator
 
 import requests
 
@@ -8,16 +8,25 @@ from .exceptions import FieldNotFoundError, FunctionNotFoundError, BadParameterE
 from .helpers import url_join, handle_http_error
 from .types import Schema
 
+Get = Union[dict, List[dict], Iterator[dict]]
+
 
 class Resource:
 
     def __init__(self, session: requests.Session, wapi_url: str, name: str):
+        self._url = wapi_url
         self._name = name
-        self._url = url_join(wapi_url, self._name)
         self._session = session
         self._schema: Schema = None
         self._load_schema()
-        self._fields, self._functions = self._get_fields_and_functions()
+        # fields we get by default when we fetch resource objects without changing
+        # returned fields
+        self._default_get_fields: List[str] = []
+        # fields necessary to create the resource object in infoblox
+        self._default_post_fields: List[str] = []
+        self._fields: List[str] = []
+        self._functions: List[str] = []
+        self._compute_fields_and_functions()
 
     @property
     def documentation(self) -> Schema:
@@ -38,21 +47,21 @@ class Resource:
     def _load_schema(self) -> None:
         """Loads the model schema."""
         params = {'_schema': '1', '_schema_version': '2', '_get_doc': '1'}
-        response = self._session.get(self._url, params=params)
+        response = self._session.get(url_join(self._url, self._name), params=params)
         handle_http_error(response)
         self._schema = response.json()
 
-    def _get_fields_and_functions(self) -> Tuple[List[str], List[str]]:
-        """Returns the lists of available fields and functions."""
-        fields = []
-        functions = []
-
+    def _compute_fields_and_functions(self) -> None:
+        """Computes the lists of available fields and functions."""
         for field in self._schema['fields']:
             if field.get('wapi_primitive', '') == 'funccall':
-                functions.append(field['name'])
+                self._functions.append(field['name'])
             else:
-                fields.append(field['name'])
-        return fields, functions
+                if field['standard_field']:
+                    self._default_get_fields.append(field['name'])
+                if field.get('supports_inline_funccall', False):
+                    self._default_post_fields.append(field['name'])
+                self._fields.append(field['name'])
 
     @staticmethod
     def _get_field_support_information(support_string: str) -> List[str]:
@@ -244,9 +253,9 @@ class Resource:
 
     def get(self, max_results: int = 1000, params: dict = None, return_fields: List[str] = None,
             return_fields_plus: List[str] = None, paging: bool = False, proxy_search: str = None,
-            return_type: str = None) -> Union[dict, list]:
+            return_type: str = 'json') -> Get:
         """
-        Performs infoblox get operations.
+        Performs get operations.
         :param max_results: number of objects to return.
         :param params: query parameters to filter results. Look wapi documentation, for more information.
         :param return_fields: default object fields to return.
@@ -257,29 +266,52 @@ class Resource:
          'xml-pretty'
         :return: a dict or list of dicts.
         """
-        # returned fields validation
-        self._validate_return_fields(return_fields)
-        self._validate_return_fields(return_fields_plus)
+        parameters = {}
         # validate return type
         self._validate_return_type(return_type)
+        parameters['_return_type'] = return_type
         # validate params
-        self._validate_params(params)
+        if params is not None:
+            self._validate_params(params)
+            parameters = {**parameters, **params}
 
-        parameters = {}
         if return_fields is not None:
+            self._validate_return_fields(return_fields)
             parameters['_return_fields'] = ','.join(return_fields)
-        if return_fields_plus is not None:
-            parameters['_return_fields+'] = ','.join(return_fields_plus)
+        # we use either _return_fields or _return_fields+ but not both
+        if return_fields_plus is not None and return_fields is None:
+            self._validate_return_fields(return_fields_plus)
+            # we don't want add fields which are already part of the default fields returned
+            # this is the reason of the list comprehension
+            new_return_fields = [field for field in return_fields_plus if field not in self._default_get_fields]
+            parameters['_return_fields+'] = ','.join(new_return_fields)
         if proxy_search is not None:
             proxies = ['GM', 'LOCAL']
             if proxy_search.upper() not in ['GM', 'LOCAL']:
                 raise BadParameterError(f'proxy_search must be in {proxies} but you provide: {proxy_search}')
             parameters['_proxy_search'] = proxy_search.upper()
 
-        response = self._session.get(self._url, params=parameters)
+        response = self._session.get(url_join(self._url, self._name), params=parameters)
         handle_http_error(response)
-
         return response.json()
+        # if not paging:
+        #     response = self._session.get(url_join(self._url, self._name), params=parameters)
+        #     handle_http_error(response)
+        #     return response.json()
+        # else:
+        #     if not isinstance(max_results, int):
+        #         raise BadParameterError(f'max_results must be an integer but you provide {max_results}')
+        #     next_page = True
+        #     new_params = {**parameters, **{'_return_as_object': '1', '_paging': '1', '_max_results': max_results}}
+        #     while next_page:
+        #         response = self._session.get(url_join(self._url, self._name), params=new_params)
+        #         handle_http_error(response)
+        #         json_response = response.json()
+        #         if 'next_page_id' in json_response:
+        #             new_params = {'_page_id': json_response['next_page_id']}
+        #             yield from json_response['result']
+        #         else:
+        #             next_page = False
 
     def get_all_objects(self):
         pass

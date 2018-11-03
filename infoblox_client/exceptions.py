@@ -8,7 +8,9 @@ class BadParameterError(IBError):
 
 
 class HttpError(IBError):
-    pass
+    def __init__(self, status_code, error_message):
+        self.status_code = status_code
+        self.error_message = error_message
 
 
 class IncompatibleApiError(IBError):
