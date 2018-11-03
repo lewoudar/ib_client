@@ -22,7 +22,9 @@ class Resource:
         self._default_get_fields: List[str] = []
         # fields necessary to create the resource object in infoblox
         self._default_post_fields: List[str] = []
+        # list of all fields inside the schema
         self._fields: List[str] = []
+        # list of all functions inside the schema
         self._functions: List[str] = []
         self._compute_fields_and_functions()
 

@@ -1,4 +1,4 @@
-"""Tests resource_name methods which helps to validate user queries"""
+"""Tests some intern methods and properties defined in Resource class"""
 import pytest
 
 from infoblox_client.exceptions import BadParameterError, FieldNotFoundError, SearchOnlyFieldError, \
@@ -202,6 +202,27 @@ def test_get_field_support_information_returns_correct_info(resource, supports, 
 ])
 def test_get_field_searchable_information_returns_correct_info(resource, search_string, expected_list):
     assert expected_list == resource.get_field_searchable_information(search_string)
+
+
+class TestResourceProperties:
+    def test_documentation_property_contains_correct_info(self, resource):
+        for item in ['cloud_additional_restrictions', 'fields', 'restrictions', 'schema_version', 'type', 'version',
+                     'wapi_primitive']:
+            assert item in resource.documentation
+
+    def test_name_property_is_correct(self, resource_name, resource):
+        assert resource_name == resource.name
+
+    def test_fields_property_contains_correct_info(self, resource):
+        for item in ['comment', 'network', 'contains_address']:
+            assert item in resource.fields
+        # expand_network is a function, it should be in fields property
+        assert 'expand_network' not in resource.fields
+
+    def test_functions_property_contains_correct_info(self, resource):
+        assert 'expand_network' in resource.functions
+        # authority is a field, not a function so it should not be in functions property
+        assert 'authority' not in resource.functions
 
 
 class TestValidateReturnFields:

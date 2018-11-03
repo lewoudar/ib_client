@@ -44,6 +44,21 @@ def network_schema():
                 ]
             },
             {
+                "doc": "The network address in IPv4 Address/CIDR format. For regular expression searches,"
+                       " only the IPv4 Address portion is supported. Searches for the CIDR portion is always"
+                       " an exact match. For example, both network containers 10.0.0.0/8 and 20.1.0.0/16 are matched"
+                       " by expression '.0' and only 20.1.0.0/16 is matched by '.0/16'.",
+                "is_array": False,
+                "name": "network",
+                "searchable_by": "=~",
+                "standard_field": True,
+                "supports": "rwus",
+                "supports_inline_funccall": True,
+                "type": [
+                    "string"
+                ]
+            },
+            {
                 "doc": "A string describing the utilization level of the network.",
                 "enum_values": [
                     "FULL",

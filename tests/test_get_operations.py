@@ -73,6 +73,13 @@ def test_get_method_returns_correct_data(responses, url, resource_name, resource
 
 
 class TestGetObjectByReference:
+    @pytest.mark.parametrize('object_ref', [4, 4.0])
+    def test_get_method_raises_error_when_object_ref_is_incorrect(self, resource, object_ref):
+        with pytest.raises(BadParameterError) as exc_info:
+            resource.get(object_ref=object_ref)
+
+        assert f'object_ref must be a string but you provide {object_ref}' == str(exc_info.value)
+
     def test_get_method_does_not_use_params_in_query_string_if_object_ref_is_present(self, responses, url, resource):
         object_ref = 'object_ref'
         parameters = {'params': {'comment': 'foo'}, 'object_ref': object_ref}
