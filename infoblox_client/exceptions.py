@@ -17,15 +17,15 @@ class IncompatibleApiError(IBError):
     pass
 
 
-class SearchOnlyFieldError(IBError):
+class SearchOnlyFieldError(BadParameterError):
     pass
 
 
-class UnknownReturnTypeError(IBError):
+class UnknownReturnTypeError(BadParameterError):
     pass
 
 
-class FieldError(IBError):
+class FieldError(BadParameterError):
     pass
 
 

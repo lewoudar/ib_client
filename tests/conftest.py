@@ -332,6 +332,9 @@ class MyResource(Resource):
     def validate_params(self, params):
         self._validate_params(params)
 
+    def check_proxy_search_value(self, proxy_search: str):
+        self._check_proxy_search_value(proxy_search)
+
 
 @pytest.fixture(scope='session')
 def url():

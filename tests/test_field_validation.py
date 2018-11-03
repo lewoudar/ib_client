@@ -320,3 +320,19 @@ class TestValidateParams:
             resource.validate_params(parameters)
         except FieldError:
             pytest.fail(f'_validate_params raise error with parameters: {parameters}')
+
+
+class TestCheckProxySearchValue:
+    @pytest.mark.parametrize('proxy_search', [4, 'foo'])
+    def test_method_raises_error_when_proxy_search_is_incorrect(self, resource, proxy_search):
+        with pytest.raises(BadParameterError) as exc_info:
+            resource.check_proxy_search_value(proxy_search)
+
+        assert 'proxy_search must be in' in str(exc_info.value)
+
+    @pytest.mark.parametrize('proxy_search', ['GM', 'local', 'Gm', 'locAl'])
+    def test_method_does_not_raise_error_when_proxy_search_is_correct(self, resource, proxy_search):
+        try:
+            resource.check_proxy_search_value(proxy_search)
+        except BadParameterError:
+            pytest.fail(f'_check_proxy_search raises an error with value {proxy_search}')

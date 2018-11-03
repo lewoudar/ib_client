@@ -8,8 +8,6 @@ from .exceptions import FieldNotFoundError, FunctionNotFoundError, BadParameterE
 from .helpers import url_join, handle_http_error
 from .types import Schema
 
-Get = Union[dict, List[dict], Iterator[dict]]
-
 
 class Resource:
 
@@ -251,30 +249,19 @@ class Resource:
 
             self._check_field_value(field_name, value)
 
-    def get(self, max_results: int = 1000, params: dict = None, return_fields: List[str] = None,
-            return_fields_plus: List[str] = None, paging: bool = False, proxy_search: str = None,
-            return_type: str = 'json') -> Get:
+    @staticmethod
+    def _check_proxy_search_value(proxy_search: str):
+        proxies = ['LOCAL', 'GM']
+        if not isinstance(proxy_search, str) or proxy_search.upper() not in ['GM', 'LOCAL']:
+            raise BadParameterError(f'proxy_search must be in {proxies} but you provide: {proxy_search}')
+
+    def _process_return_field_parameters(self, return_fields: List[str] = None,
+                                         return_fields_plus: List[str] = None) -> dict:
         """
-        Performs get operations.
-        :param max_results: number of objects to return.
-        :param params: query parameters to filter results. Look wapi documentation, for more information.
-        :param return_fields: default object fields to return.
-        :param return_fields_plus: additional object fields, extensible attributes to return in addition of
-        :param paging: boolean to perform paging requests.
-        :param proxy_search: 'GM' or 'LOCAL'. See wapi documentation for more information.
-        :param return_type: data format for returned values. Possible values are 'json', 'json-pretty', 'xml',
-         'xml-pretty'
-        :return: a dict or list of dicts.
+        Process and return a dict representing _return_fields and _return_fields_plus parameters.
+        The description of parameters is the same as that of the get method.
         """
         parameters = {}
-        # validate return type
-        self._validate_return_type(return_type)
-        parameters['_return_type'] = return_type
-        # validate params
-        if params is not None:
-            self._validate_params(params)
-            parameters = {**parameters, **params}
-
         if return_fields is not None:
             self._validate_return_fields(return_fields)
             parameters['_return_fields'] = ','.join(return_fields)
@@ -285,36 +272,82 @@ class Resource:
             # this is the reason of the list comprehension
             new_return_fields = [field for field in return_fields_plus if field not in self._default_get_fields]
             parameters['_return_fields+'] = ','.join(new_return_fields)
+        return parameters
+
+    def _process_get_parameters(self, object_ref: str = None, params: dict = None, return_fields: List[str] = None,
+                                return_fields_plus: List[str] = None, proxy_search: str = None,
+                                return_type: str = 'json') -> dict:
+        """
+        Process and returns a dict representing query string to pass for the get operation.
+        The description of parameters is the same as that of the get method.
+        """
+        parameters = {}
+        # validate return type
+        self._validate_return_type(return_type)
+        parameters['_return_type'] = return_type
+        # validate params
+        # we can't search by field name if we provide an object reference
+        if params is not None and object_ref is None:
+            self._validate_params(params)
+            parameters = {**parameters, **params}
+
+        # get _return_fields and _returns_fields+ parameters
+        parameters = {**parameters, **self._process_return_field_parameters(return_fields, return_fields_plus)}
         if proxy_search is not None:
-            proxies = ['GM', 'LOCAL']
-            if proxy_search.upper() not in ['GM', 'LOCAL']:
-                raise BadParameterError(f'proxy_search must be in {proxies} but you provide: {proxy_search}')
+            self._check_proxy_search_value(proxy_search)
             parameters['_proxy_search'] = proxy_search.upper()
 
-        response = self._session.get(url_join(self._url, self._name), params=parameters)
+        return parameters
+
+    def get(self, object_ref: str = None, params: dict = None, return_fields: List[str] = None,
+            return_fields_plus: List[str] = None, proxy_search: str = None,
+            return_type: str = 'json') -> Union[dict, List[dict]]:
+        """
+        Performs get operations.
+        :param object_ref: reference of the object to fetch.
+        :param params: query parameters to filter results. Look wapi documentation, for more information.
+        :param return_fields: default object fields to return.
+        :param return_fields_plus: additional object fields (extensible attributes included) to return in addition of
+        default fields.
+        :param proxy_search: 'GM' or 'LOCAL'. See wapi documentation for more information.
+        :param return_type: data format for returned values. Possible values are 'json', 'json-pretty', 'xml',
+         'xml-pretty'
+        """
+        parameters = self._process_get_parameters(object_ref, params, return_fields, return_fields_plus, proxy_search,
+                                                  return_type)
+        url = url_join(self._url, self._name)
+        if object_ref is not None:
+            if not isinstance(object_ref, str):
+                raise BadParameterError(f'object_ref must be a string but you provide {object_ref}')
+            url = url_join(self._url, object_ref)
+        response = self._session.get(url, params=parameters)
         handle_http_error(response)
         return response.json()
-        # if not paging:
-        #     response = self._session.get(url_join(self._url, self._name), params=parameters)
-        #     handle_http_error(response)
-        #     return response.json()
-        # else:
-        #     if not isinstance(max_results, int):
-        #         raise BadParameterError(f'max_results must be an integer but you provide {max_results}')
-        #     next_page = True
-        #     new_params = {**parameters, **{'_return_as_object': '1', '_paging': '1', '_max_results': max_results}}
-        #     while next_page:
-        #         response = self._session.get(url_join(self._url, self._name), params=new_params)
-        #         handle_http_error(response)
-        #         json_response = response.json()
-        #         if 'next_page_id' in json_response:
-        #             new_params = {'_page_id': json_response['next_page_id']}
-        #             yield from json_response['result']
-        #         else:
-        #             next_page = False
 
-    def get_all_objects(self):
-        pass
+    def paginated_response(self, params: dict = None, return_fields: List[str] = None,
+                           return_fields_plus: List[str] = None, proxy_search: str = None,
+                           return_type: str = 'json') -> Iterator[dict]:
+        """
+        Helper function to get multiple objects with memory efficiency.
+        The description of parameters is the same as that of the get method.
+        """
+        parameters = self._process_get_parameters(object_ref=None, params=params, return_fields=return_fields,
+                                                  return_fields_plus=return_fields_plus, proxy_search=proxy_search,
+                                                  return_type=return_type)
+        parameters['_return_as_object'] = 1
+        parameters['_paging'] = 1
+        parameters['_max_results'] = 1000
+        next_page = True
+
+        while next_page:
+            response = self._session.get(url_join(self._url, self._name), params=parameters)
+            handle_http_error(response)
+            json_response = response.json()
+            if 'next_page_id' in json_response:
+                parameters = {'_page_id': json_response['next_page_id']}
+            else:
+                next_page = False
+            yield from json_response['result']
 
     def post(self):
         pass
