@@ -420,7 +420,8 @@ class Resource:
         # we check if all mandatory fields are present
         for field in self._default_post_fields:
             if field not in kwargs:
-                raise MandatoryCreationFieldError(f'{field} field is mandatory for {self._name} creation but is missing')
+                raise MandatoryCreationFieldError(
+                    f'{field} field is mandatory for {self._name} creation but is missing')
         # we check if there is a no mandatory field
         for field, value in kwargs.items():
             if field not in self._default_post_fields:
@@ -443,8 +444,48 @@ class Resource:
     def delete(self):
         pass
 
-    def func_call(self):
-        pass
+    @staticmethod
+    def _get_field_info_from_function_info(function_info: dict = None, field_name: str = None,
+                                           field_type: str = 'input') -> dict:
+        """
+        Helper method to get input or output field information from function information.
+        :param function_info: a dict with function information.
+        :param field_name: the name of the field which information is requested.
+        :param field_type: specify if it an input of output field. The two possible values are "input" and "output".
+        By default it is assumed to be "input".
+        """
+        for field in function_info['schema'][f'{field_type}_fields']:
+            if field['name'] == field_name:
+                return field
+
+    def func_call(self, object_ref: str = None, function_name: str = None, **kwargs):
+        # object_ref validation
+        if object_ref is None:
+            raise MandatoryCreationFieldError('object_ref is missing')
+        if not isinstance(object_ref, str):
+            raise BadParameterError(f'object_ref must be a string but you provide {object_ref}')
+        # function_name validation
+        if function_name is None:
+            raise MandatoryCreationFieldError('function_name is missing')
+        if not isinstance(function_name, str):
+            raise BadParameterError(f'function_name must be a string but you provide {function_name}')
+        if function_name not in self._functions:
+            raise FunctionNotFoundError(f'{function_name} is an unknown function for {self._name} object')
+
+        function_info = self.get_function_information(function_name)
+        input_fields: List[str] = [field['name'] for field in function_info['schema']['input_fields']]
+
+        payload = {}
+        for key, value in kwargs.items():
+            if key not in input_fields:
+                raise BadParameterError(f'{key} is not a valid input field for {function_name} function')
+            self._check_field_value(key, value, self._get_field_info_from_function_info(function_info, key))
+            payload[key] = value
+
+        parameters = {'_function': function_name}
+        response = self._session.post(url_join(self._url, object_ref), params=parameters, json=payload)
+        handle_http_error(response)
+        return response.json()
 
     def has_at_least_x_objects(self, number: int) -> bool:
         # don't forget negative max results :)

@@ -256,6 +256,50 @@ def network_schema():
                 "wapi_primitive": "struct"
             },
             {
+                "doc": "This function retrieves the next available IP in the network.",
+                "is_array": False,
+                "name": "next_available_ip",
+                "schema": {
+                    "input_fields": [
+                        {
+                            "doc": "The number of IP addresses you are requesting.",
+                            "is_array": False,
+                            "name": "num",
+                            "supports": "w",
+                            "type": [
+                                "uint"
+                            ]
+                        },
+                        {
+                            "doc": "A list of IP addresses to exclude.",
+                            "is_array": True,
+                            "name": "exclude",
+                            "supports": "w",
+                            "type": [
+                                "string"
+                            ]
+                        }
+                    ],
+                    "output_fields": [
+                        {
+                            "doc": "The requested IP addresses.",
+                            "is_array": True,
+                            "name": "ips",
+                            "supports": "r",
+                            "type": [
+                                "string"
+                            ]
+                        }
+                    ]
+                },
+                "standard_field": False,
+                "supports": "rwu",
+                "type": [
+                    "nextavailableip"
+                ],
+                "wapi_primitive": "funccall"
+            },
+            {
                 "doc": "This function reduces the subnet masks of a network by joining all networks that fall under it."
                        " All the ranges and fixed addresses of the original networks are reparented to the new joined"
                        " network. Any network containers that fall inside the bounds of the joined network are removed",
@@ -357,6 +401,9 @@ class MyResource(Resource):
         return self._process_schedule_and_approval_info(schedule_time, schedule_now, schedule_predecessor_task,
                                                         schedule_warn_level, approval_comment, approval_query_mode,
                                                         approval_ticket_number)
+
+    def get_field_info_from_function_info(self, function_info, field_name, field_type):
+        return self._get_field_info_from_function_info(function_info, field_name, field_type)
 
 
 @pytest.fixture(scope='session')

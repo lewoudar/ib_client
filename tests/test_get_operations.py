@@ -98,7 +98,7 @@ class TestGetObjectByReference:
 
 
 # we test the method get_multiple
-class TestPaginateResponse:
+class TestGetMultiple:
     def test_method_returns_correct_data_with_next_page_id(self, responses, url, resource_name, resource):
         network_objects = [{'network': f'192.168.{i}.0/24', 'networkview': 'default'} for i in range(1, 7)]
         payload_1 = {
