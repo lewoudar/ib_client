@@ -17,6 +17,14 @@ class IncompatibleApiError(IBError):
     pass
 
 
+class IncompatibleOperationError(BadParameterError):
+    pass
+
+
+class MandatoryCreationFieldError(BadParameterError):
+    pass
+
+
 class SearchOnlyFieldError(BadParameterError):
     pass
 

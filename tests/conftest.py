@@ -350,6 +350,14 @@ class MyResource(Resource):
     def check_proxy_search_value(self, proxy_search: str):
         self._check_proxy_search_value(proxy_search)
 
+    def process_schedule_and_approval_info(self, schedule_time: int = None, schedule_now: bool = False,
+                                           schedule_predecessor_task: str = None, schedule_warn_level: str = None,
+                                           approval_comment: str = None, approval_query_mode: str = None,
+                                           approval_ticket_number: int = None):
+        return self._process_schedule_and_approval_info(schedule_time, schedule_now, schedule_predecessor_task,
+                                                        schedule_warn_level, approval_comment, approval_query_mode,
+                                                        approval_ticket_number)
+
 
 @pytest.fixture(scope='session')
 def url():

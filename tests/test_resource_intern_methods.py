@@ -1,8 +1,10 @@
 """Tests some intern methods and properties defined in Resource class"""
+import time
+
 import pytest
 
 from infoblox_client.exceptions import BadParameterError, FieldNotFoundError, SearchOnlyFieldError, \
-    UnknownReturnTypeError, FieldError, FunctionNotFoundError
+    UnknownReturnTypeError, FieldError, FunctionNotFoundError, IncompatibleOperationError
 
 
 # To understand tests, translate class names in kebab-case to know the targeted method tested.
@@ -357,3 +359,86 @@ class TestCheckProxySearchValue:
             resource.check_proxy_search_value(proxy_search)
         except BadParameterError:
             pytest.fail(f'_check_proxy_search raises an error with value {proxy_search}')
+
+
+class TestProcessScheduleAndApprovalInfo:
+
+    @pytest.mark.parametrize(('parameters', 'error_message'), [
+        ({'schedule_time': 'foo'}, 'schedule_time must be a positive integer representing a FUTURE TIME'),
+        ({'schedule_time': 12}, 'schedule_time must be a positive integer representing a FUTURE TIME'),
+        ({'schedule_now': 'foo'}, 'schedule_now must be a boolean'),
+        ({'schedule_now': 2}, 'schedule_now must be a boolean'),
+        ({'schedule_predecessor_task': 2}, 'schedule_predecessor_task must be a string'),
+        ({'schedule_predecessor_task': 2.0}, 'schedule_predecessor_task must be a string'),
+        ({'schedule_warn_level': 2.0}, 'schedule_warn_level must be either WARN or NONE'),
+        ({'schedule_warn_level': 'foo'}, 'schedule_warn_level must be either WARN or NONE'),
+        ({'approval_comment': 2}, 'approval_comment must be a string'),
+        ({'approval_comment': 2.0}, 'approval_comment must be a string'),
+        ({'approval_query_mode': 2}, 'approval_query_mode must be either true or false'),
+        ({'approval_query_mode': 'foo'}, 'approval_query_mode must be either true or false'),
+        ({'approval_ticket_number': 2.0}, 'approval_ticket_number must be an integer'),
+        ({'approval_ticket_number': 'foo'}, 'approval_ticket_number must be an integer')
+    ])
+    def test_method_raises_error_when_parameters_are_incorrect(self, resource, parameters, error_message):
+        with pytest.raises(BadParameterError) as exc_info:
+            resource.process_schedule_and_approval_info(**parameters)
+
+        assert error_message in str(exc_info.value)
+
+    def test_method_raises_error_if_schedule_time_and_schedule_now_are_both_set(self, resource):
+        with pytest.raises(IncompatibleOperationError) as exc_info:
+            resource.process_schedule_and_approval_info(schedule_time=int(time.time()) + 10, schedule_now=True)
+
+        assert 'you cannot use _schedinfo.scheduled_time and _schedinfo.schedule_now' \
+               ' at the same time' == str(exc_info.value)
+
+    @pytest.mark.parametrize('parameters', [
+        {'schedule_time': int(time.time()) + 10},
+        {'schedule_now': True},
+        {'schedule_predecessor_task': 'previous-task'},
+        {'schedule_warn_level': 'WARN'},
+        {'approval_comment': 'comment'},
+        {'approval_query_mode': 'true'},
+        {'approval_ticket_number': 12}
+    ])
+    def test_method_does_not_raise_error_when_parameters_are_correct(self, resource, parameters):
+        try:
+            resource.process_schedule_and_approval_info(**parameters)
+        except BadParameterError:
+            pytest.fail(f'_process_schedule_and_approval_info raises error with parameters {parameters}')
+
+    @pytest.mark.parametrize(('parameters', 'expected_query_dict'), [
+        (
+                {'schedule_now': True, 'schedule_predecessor_task': 'previous-task'},
+                {'_schedinfo.schedule_now': 1, '_schedinfo.predecessor_task': 'previous-task'}
+        ),
+        (
+                {'schedule_warn_level': 'NONE', 'approval_comment': 'comment'},
+                {'_schedinfo.warnlevel': 'NONE', '_approvalinfo.comment': 'comment'}
+        ),
+        (
+                {'approval_query_mode': 'false', 'approval_ticket_number': 1452},
+                {'_approvalinfo.query_mode': 'false', '_approvalinfo.ticket_number': 1452}
+        )
+    ])
+    def test_method_returns_correct_query_dict(self, resource, parameters, expected_query_dict):
+        assert expected_query_dict == resource.process_schedule_and_approval_info(**parameters)
+
+    # we write a specific test case for schedule_time because it is not simple to handle common time
+    # between fixture parameters (parameters and expected_query_dict)
+    @pytest.mark.parametrize(('parameters', 'expected_query_dict'), [
+        (
+                {'schedule_warn_level': 'NONE', 'approval_comment': 'comment'},
+                {'_schedinfo.warnlevel': 'NONE', '_approvalinfo.comment': 'comment'}
+        ),
+        (
+                {'approval_query_mode': 'false', 'approval_ticket_number': 1452},
+                {'_approvalinfo.query_mode': 'false', '_approvalinfo.ticket_number': 1452}
+        )
+    ])
+    def test_method_returns_correct_query_dict_when_giving_correct_schedule_time(self, resource, parameters,
+                                                                                 expected_query_dict):
+        schedule_time = int(time.time()) + 10
+        parameters['schedule_time'] = schedule_time
+        expected_query_dict['_schedinfo.scheduled_time'] = schedule_time
+        assert expected_query_dict == resource.process_schedule_and_approval_info(**parameters)
