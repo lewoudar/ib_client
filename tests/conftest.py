@@ -1,7 +1,7 @@
 import pytest
 import requests
 
-from infoblox_client.resource import Resource
+from infoblox.resource import Resource
 
 
 @pytest.fixture(scope='session')

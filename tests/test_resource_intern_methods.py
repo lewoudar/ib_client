@@ -3,7 +3,7 @@ import time
 
 import pytest
 
-from infoblox_client.exceptions import BadParameterError, FieldNotFoundError, SearchOnlyFieldError, \
+from infoblox.exceptions import BadParameterError, FieldNotFoundError, SearchOnlyFieldError, \
     UnknownReturnTypeError, FieldError, FunctionNotFoundError, IncompatibleOperationError
 
 

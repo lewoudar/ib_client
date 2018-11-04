@@ -2,7 +2,7 @@ from urllib.parse import urlencode
 
 import pytest
 
-from infoblox_client.exceptions import BadParameterError, UnknownReturnTypeError, FieldError, FieldNotFoundError, \
+from infoblox.exceptions import BadParameterError, UnknownReturnTypeError, FieldError, FieldNotFoundError, \
     SearchOnlyFieldError, HttpError
 
 

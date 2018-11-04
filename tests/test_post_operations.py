@@ -3,7 +3,7 @@ import json
 
 import pytest
 
-from infoblox_client.exceptions import MandatoryCreationFieldError, BadParameterError, FunctionNotFoundError, \
+from infoblox.exceptions import MandatoryCreationFieldError, BadParameterError, FunctionNotFoundError, \
     FieldError, HttpError
 
 
