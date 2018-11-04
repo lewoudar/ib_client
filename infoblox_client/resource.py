@@ -306,7 +306,8 @@ class Resource:
             return_fields_plus: List[str] = None, proxy_search: str = None,
             return_type: str = 'json') -> Union[dict, List[dict]]:
         """
-        Performs get operations.
+        Performs get operations. Useful to get a specific object using its reference or just a few objects.
+        If you know, you will get many objects, it is better to use the method "get_multiple".
         :param object_ref: reference of the object to fetch.
         :param params: query parameters to filter results. Look wapi documentation, for more information.
         :param return_fields: default object fields to return.
@@ -327,9 +328,9 @@ class Resource:
         handle_http_error(response)
         return response.json()
 
-    def paginated_response(self, params: dict = None, return_fields: List[str] = None,
-                           return_fields_plus: List[str] = None, proxy_search: str = None,
-                           return_type: str = 'json') -> Iterator[dict]:
+    def get_multiple(self, params: dict = None, return_fields: List[str] = None,
+                     return_fields_plus: List[str] = None, proxy_search: str = None,
+                     return_type: str = 'json') -> Iterator[dict]:
         """
         Helper function to get multiple objects with memory efficiency.
         The description of parameters is the same as that of the get method.

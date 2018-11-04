@@ -97,7 +97,7 @@ class TestGetObjectByReference:
         assert payload == resource.get(object_ref=object_ref)
 
 
-# we test the method paginated_response
+# we test the method get_multiple
 class TestPaginateResponse:
     def test_method_returns_correct_data_with_next_page_id(self, responses, url, resource_name, resource):
         network_objects = [{'network': f'192.168.{i}.0/24', 'networkview': 'default'} for i in range(1, 7)]
@@ -111,7 +111,7 @@ class TestPaginateResponse:
         responses.replace(responses.GET, f'{url}/{resource_name}', json=payload_1, status=200)
 
         counter = 0
-        for item in resource.paginated_response():
+        for item in resource.get_multiple():
             if counter == 0:
                 responses.replace(responses.GET, f'{url}/{resource_name}', json=payload_2, status=200)
             assert network_objects[counter] == item
@@ -123,6 +123,6 @@ class TestPaginateResponse:
         responses.replace(responses.GET, f'{url}/{resource_name}', json=payload, status=200)
 
         counter = 0
-        for item in resource.paginated_response():
+        for item in resource.get_multiple():
             assert network_objects[counter] == item
             counter += 1
