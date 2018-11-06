@@ -5,7 +5,7 @@ from typing import List, Dict, Any, Union, Iterator
 import requests
 
 from .exceptions import FieldNotFoundError, FunctionNotFoundError, BadParameterError, SearchOnlyFieldError, \
-    UnknownReturnTypeError, FieldError, IncompatibleOperationError, MandatoryCreationFieldError
+    UnknownReturnTypeError, FieldError, IncompatibleOperationError, MandatoryFieldError
 from .helpers import url_join, handle_http_error
 from .types import Schema
 
@@ -420,7 +420,7 @@ class Resource:
         # we check if all mandatory fields are present
         for field in self._default_post_fields:
             if field not in kwargs:
-                raise MandatoryCreationFieldError(
+                raise MandatoryFieldError(
                     f'{field} field is mandatory for {self._name} creation but is missing')
         # we check if there is a no mandatory field
         for field, value in kwargs.items():
@@ -438,8 +438,47 @@ class Resource:
         handle_http_error(response)
         return response.json()
 
-    def put(self):
-        pass
+    @staticmethod
+    def _check_object_reference(object_ref=None) -> None:
+        """Checks that object_ref parameter is present and represents a string."""
+        if object_ref is None:
+            raise MandatoryFieldError('object_ref is missing')
+        if not isinstance(object_ref, str):
+            raise BadParameterError(f'object_ref must be a string but you provide {object_ref}')
+
+    def modify(self, object_ref: str = None, schedule_time: int = None, schedule_now: bool = False,
+               schedule_predecessor_task: str = None, schedule_warn_level: str = None, approval_comment: str = None,
+               approval_query_mode: str = None, approval_ticket_number: int = None, return_fields: List[str] = None,
+               return_fields_plus: List[str] = None, **kwargs) -> Union[str, dict]:
+        """
+        Modify a specific object giving its reference. Returns the reference of the modified object or object
+        with fields specified via parameters return_fields or return_fields_plus.
+        :param object_ref: reference of the object to modify.
+        :param kwargs: keyword arguments representing fields object to modify.
+        """
+        self._check_object_reference(object_ref)
+        payload = {}
+        for key, value in kwargs.items():
+            if key not in self._fields:
+                raise FieldNotFoundError(f'{key} is not a {self._name} field')
+            field_info = self.get_field_information(key)
+            if 'update' not in field_info['supports']:
+                raise FieldError(f'{key} cannot be updated, operations supported by this'
+                                 f' field are: {field_info["supports"]}')
+            self._check_field_value(key, value, field_info)
+            payload[key] = value
+
+        parameters = self._process_schedule_and_approval_info(schedule_time=schedule_time, schedule_now=schedule_now,
+                                                              schedule_predecessor_task=schedule_predecessor_task,
+                                                              schedule_warn_level=schedule_warn_level,
+                                                              approval_comment=approval_comment,
+                                                              approval_query_mode=approval_query_mode,
+                                                              approval_ticket_number=approval_ticket_number)
+        parameters = {**parameters, **self._process_return_field_parameters(return_fields, return_fields_plus)}
+
+        response = self._session.put(url_join(self._url, object_ref), params=parameters, json=payload)
+        handle_http_error(response)
+        return response.json()
 
     def delete(self):
         pass
@@ -460,13 +499,10 @@ class Resource:
 
     def func_call(self, object_ref: str = None, function_name: str = None, **kwargs):
         # object_ref validation
-        if object_ref is None:
-            raise MandatoryCreationFieldError('object_ref is missing')
-        if not isinstance(object_ref, str):
-            raise BadParameterError(f'object_ref must be a string but you provide {object_ref}')
+        self._check_object_reference(object_ref)
         # function_name validation
         if function_name is None:
-            raise MandatoryCreationFieldError('function_name is missing')
+            raise MandatoryFieldError('function_name is missing')
         if not isinstance(function_name, str):
             raise BadParameterError(f'function_name must be a string but you provide {function_name}')
         if function_name not in self._functions:
