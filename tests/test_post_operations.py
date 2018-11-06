@@ -3,7 +3,7 @@ import json
 
 import pytest
 
-from infoblox.exceptions import MandatoryCreationFieldError, BadParameterError, FunctionNotFoundError, \
+from infoblox.exceptions import MandatoryFieldError, BadParameterError, FunctionNotFoundError, \
     FieldError, HttpError
 
 
@@ -13,7 +13,7 @@ from tests.helpers import ResponseMock
 
 class TestCreate:
     def test_method_raises_error_when_mandatory_field_is_missing(self, resource):
-        with pytest.raises(MandatoryCreationFieldError) as exc_info:
+        with pytest.raises(MandatoryFieldError) as exc_info:
             resource.create()
 
         assert 'network field is mandatory for network creation but is missing' == str(exc_info.value)
@@ -66,7 +66,7 @@ class TestFuncCall:
         ({'object_ref': 'my-ref'}, 'function_name is missing')
     ])
     def test_method_raises_error_when_mandatory_fields_are_missing(self, resource, parameters, error_message):
-        with pytest.raises(MandatoryCreationFieldError) as exc_info:
+        with pytest.raises(MandatoryFieldError) as exc_info:
             resource.func_call(**parameters)
 
         assert error_message == str(exc_info.value)
@@ -105,7 +105,7 @@ class TestFuncCall:
         ({'num': 'foo'}, 'must have one of the following types'),
         ({'exclude': 'foo'}, 'must be a list')
     ])
-    def test_method_raises_error_when_input_field_type_is_incorrect(self, resource, field_parameter, error_message):
+    def test_method_raises_error_when_input_field_value_is_incorrect(self, resource, field_parameter, error_message):
         with pytest.raises(FieldError) as exc_info:
             resource.func_call(object_ref='ref', function_name='next_available_ip', **field_parameter)
 

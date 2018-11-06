@@ -21,7 +21,7 @@ class IncompatibleOperationError(BadParameterError):
     pass
 
 
-class MandatoryCreationFieldError(BadParameterError):
+class MandatoryFieldError(BadParameterError):
     pass
 
 
