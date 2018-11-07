@@ -410,11 +410,13 @@ class Resource:
 
     def create(self, schedule_time: int = None, schedule_now: bool = False, schedule_predecessor_task: str = None,
                schedule_warn_level: str = None, approval_comment: str = None, approval_query_mode: str = None,
-               approval_ticket_number: int = None, **kwargs) -> str:
+               approval_ticket_number: int = None, return_fields: List[str] = None,
+               return_fields_plus: List[str] = None, **kwargs) -> Union[str, dict]:
         """
-        Create an infoblox object.
+        Create an infoblox object. Returns the reference of the created object or an object with fields specified
+        via return_fields or return_fields_plus parameters.
         kwargs representing fields used to create object with their value.
-        To know the description of other parameters, look the method process_schedule_and_approval_info.
+        To know the description of other parameters, refer to the methods _process_schedule_and_approval_info and get.
         """
         payload = {}
         # we check if all mandatory fields are present
@@ -422,18 +424,26 @@ class Resource:
             if field not in kwargs:
                 raise MandatoryFieldError(
                     f'{field} field is mandatory for {self._name} creation but is missing')
-        # we check if there is a no mandatory field
+        # we check if field is known and supports write operation
         for field, value in kwargs.items():
-            if field not in self._default_post_fields:
-                raise BadParameterError(f'{field} is not in mandatory create fields: {self._default_post_fields}')
-            self._check_field_value(field, value)
+            if field not in self._fields:
+                raise FieldNotFoundError(f'{field} is not a {self._name} field')
+            field_info = self.get_field_information(field)
+            if 'write' not in field_info['supports']:
+                raise FieldError(f'{field} cannot be written, operations supported by this '
+                                 f'field are: {field_info["supports"]}')
+            self._check_field_value(field, value, field_info)
             payload[field] = value
+        # we process schedule and approval information
         parameters = self._process_schedule_and_approval_info(schedule_time=schedule_time, schedule_now=schedule_now,
                                                               schedule_predecessor_task=schedule_predecessor_task,
                                                               schedule_warn_level=schedule_warn_level,
                                                               approval_comment=approval_comment,
                                                               approval_query_mode=approval_query_mode,
                                                               approval_ticket_number=approval_ticket_number)
+        # we process return fields information
+        parameters = {**parameters, **self._process_return_field_parameters(return_fields, return_fields_plus)}
+
         response = self._session.post(url_join(self._url, self._name), params=parameters, json=payload)
         handle_http_error(response)
         return response.json()
@@ -453,8 +463,9 @@ class Resource:
         """
         Modify a specific object giving its reference. Returns the reference of the modified object or object
         with fields specified via parameters return_fields or return_fields_plus.
-        :param object_ref: reference of the object to modify.
-        :param kwargs: keyword arguments representing fields object to modify.
+        object_ref: reference of the object to modify.
+        kwargs: keyword arguments representing fields object to modify.
+        To know the meaning of other parameters, refer to the methods _process_schedule_and_approval_info and get.
         """
         self._check_object_reference(object_ref)
         payload = {}
@@ -467,13 +478,14 @@ class Resource:
                                  f' field are: {field_info["supports"]}')
             self._check_field_value(key, value, field_info)
             payload[key] = value
-
+        # we process schedule and approval information
         parameters = self._process_schedule_and_approval_info(schedule_time=schedule_time, schedule_now=schedule_now,
                                                               schedule_predecessor_task=schedule_predecessor_task,
                                                               schedule_warn_level=schedule_warn_level,
                                                               approval_comment=approval_comment,
                                                               approval_query_mode=approval_query_mode,
                                                               approval_ticket_number=approval_ticket_number)
+        # we process return fields information
         parameters = {**parameters, **self._process_return_field_parameters(return_fields, return_fields_plus)}
 
         response = self._session.put(url_join(self._url, object_ref), params=parameters, json=payload)

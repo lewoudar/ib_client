@@ -71,7 +71,7 @@ def test_method_raises_error_when_http_status_code_greater_or_equal_than_400(res
         resource.modify(object_ref)
 
 
-def test_method_returns_correct_without_return_fields(responses, url, resource):
+def test_method_returns_correct_data_without_return_fields(responses, url, resource):
     object_ref = 'object_ref'
     responses.add(responses.PUT, f'{url}/{object_ref}', json=object_ref, status=200)
 
@@ -90,6 +90,7 @@ def test_method_returns_correct_data_with_return_fields(responses, url, resource
         url_parts = urlparse(request.url)
         query_dict = dict(parse_qsl(url_parts.query))
         if '_return_fields+' in query_dict:
+            # we don't care about field values, just field presence matters
             for field in query_dict['_return_fields+'].split(','):
                 payload[field] = 'foo'
         elif '_return_fields' in query_dict:
