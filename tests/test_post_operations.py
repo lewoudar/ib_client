@@ -6,7 +6,7 @@ import pytest
 
 from infoblox.exceptions import MandatoryFieldError, BadParameterError, FunctionNotFoundError, \
     FieldError, HttpError, FieldNotFoundError
-from tests.helpers import ResponseMock
+
 
 # To know which methods are tests, remove Test from class names and put it in lower case.
 
@@ -178,14 +178,22 @@ class TestFuncCall:
         with pytest.raises(HttpError):
             resource.func_call(object_ref=object_ref, function_name='next_available_ip', num=3)
 
-    @pytest.mark.withoutresponses
-    def test_method_is_executed_correctly_and_returns_correct_data(self, mocker, url, resource):
+    def test_method_is_executed_correctly_and_returns_correct_data(self, responses, url, resource):
         object_ref = 'ref'
         function_name = 'next_available_ip'
         payload = {'num': 1}
         expected_response = {'ips': ['192.168.1.1']}
-        post_mock = mocker.patch('requests.sessions.Session.post')
-        post_mock.return_value = ResponseMock(expected_response, 200)
+
+        def request_callback(request):
+            url_parts = urlparse(request.url)
+            query_dict = dict(parse_qsl(url_parts.query))
+            assert payload == json.loads(request.body)
+            assert '_function' in query_dict
+            assert query_dict['_function'] == function_name
+
+            return 200, {}, json.dumps(expected_response)
+
+        responses.add_callback(responses.POST, f'{url}/{object_ref}', callback=request_callback,
+                               content_type='application/json')
 
         assert expected_response == resource.func_call(object_ref, function_name, **payload)
-        post_mock.assert_called_once_with(f'{url}/{object_ref}', params={'_function': function_name}, json=payload)

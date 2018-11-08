@@ -120,6 +120,10 @@ class Resource:
                 return self._get_field_information(field)
 
     def get_function_information(self, name: str) -> dict:
+        """
+        Gets complete information about a function.
+        :param name: function name.
+        """
         if name not in self._functions:
             raise FunctionNotFoundError(f'function {name} does not exist for {self._name} object.')
         for field in self._schema['fields']:
@@ -527,6 +531,12 @@ class Resource:
                 return field
 
     def func_call(self, object_ref: str = None, function_name: str = None, **kwargs):
+        """
+        Calls a function on an object.
+        :param function_name: the name of the function to call
+        :param object_ref: reference of the object which have the function.
+        :param kwargs: function input parameters.
+        """
         # object_ref validation
         self._check_object_reference(object_ref)
         # function_name validation
