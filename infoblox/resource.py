@@ -492,8 +492,25 @@ class Resource:
         handle_http_error(response)
         return response.json()
 
-    def delete(self):
-        pass
+    def delete(self, object_ref: str = None, schedule_time: int = None, schedule_now: bool = False,
+               schedule_predecessor_task: str = None, schedule_warn_level: str = None, approval_comment: str = None,
+               approval_query_mode: str = None, approval_ticket_number: int = None):
+        """
+        Deletes a specific object giving its reference.
+        object_ref: reference of the object to modify.
+        To know the meaning of other parameters, refer to the method _process_schedule_and_approval_info.
+        """
+        self._check_object_reference(object_ref)
+        # we process schedule and approval information
+        parameters = self._process_schedule_and_approval_info(schedule_time=schedule_time, schedule_now=schedule_now,
+                                                              schedule_predecessor_task=schedule_predecessor_task,
+                                                              schedule_warn_level=schedule_warn_level,
+                                                              approval_comment=approval_comment,
+                                                              approval_query_mode=approval_query_mode,
+                                                              approval_ticket_number=approval_ticket_number)
+        response = self._session.delete(url_join(self._url, object_ref), params=parameters)
+        handle_http_error(response)
+        return response.json()
 
     @staticmethod
     def _get_field_info_from_function_info(function_info: dict = None, field_name: str = None,
