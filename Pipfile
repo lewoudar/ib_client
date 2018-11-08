@@ -12,6 +12,7 @@ pytest-mock = "*"
 pytest-responses = "*"
 pytest-cov = "*"
 pytest = "*"
+bandit = "*"
 
 [packages]
 requests = "*"
