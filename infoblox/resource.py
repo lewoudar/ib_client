@@ -357,6 +357,21 @@ class Resource:
                 next_page = False
             yield from json_response['result']
 
+    def count(self, params: dict = None, proxy_search: str = None):
+        """
+        Counts the number of objects which correspond to the query parameters passed as argument.
+        If no parameter is provided, it will return the total number of objects recorded in infoblox database.
+        :param params: a dict representing query parameters. It is the same which is passed in get method.
+        :param proxy_search: "LOCAL" or "GM". Refer to wapi documentation for more information.
+        """
+        # I can shorten the following code with this: return len(list(self.get_multiple(...)))
+        # but in term of memory efficiency it is not good, because we can have at a moment a potentially very large
+        # list in memory.
+        total = 0
+        for _ in self.get_multiple(params, proxy_search=proxy_search):
+            total += 1
+        return total
+
     @staticmethod
     def _process_schedule_and_approval_info(schedule_time: int = None, schedule_now: bool = False,
                                             schedule_predecessor_task: str = None, schedule_warn_level: str = None,
@@ -561,7 +576,3 @@ class Resource:
         response = self._session.post(url_join(self._url, object_ref), params=parameters, json=payload)
         handle_http_error(response)
         return response.json()
-
-    def has_at_least_x_objects(self, number: int) -> bool:
-        # don't forget negative max results :)
-        pass

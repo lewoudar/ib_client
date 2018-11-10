@@ -99,6 +99,22 @@ class TestGetObjectByReference:
 
 # we test the method get_multiple
 class TestGetMultiple:
+    def test_method_calls_process_get_parameters(self, mocker, responses, url, resource_name, resource):
+        process_mock = mocker.patch('infoblox.resource.Resource._process_get_parameters')
+        process_mock.return_value = {}
+        payload = {'result': [{'network': '192.168.1.24/0'}]}
+        responses.replace(responses.GET, f'{url}/{resource_name}', json=payload, status=200)
+        list(resource.get_multiple())
+
+        process_mock.assert_called_once_with(object_ref=None, params=None, return_fields=None, return_fields_plus=None,
+                                             proxy_search=None, return_type='json')
+
+    def test_method_raises_error_when_status_code_greater_or_equal_than_400(self, responses, url, resource_name,
+                                                                            resource):
+        responses.replace(responses.GET, f'{url}/{resource_name}', json={'error': 'oops'}, status=400)
+        with pytest.raises(HttpError):
+            list(resource.get_multiple())
+
     def test_method_returns_correct_data_with_next_page_id(self, responses, url, resource_name, resource):
         network_objects = [{'network': f'192.168.{i}.0/24', 'networkview': 'default'} for i in range(1, 7)]
         payload_1 = {
@@ -126,3 +142,22 @@ class TestGetMultiple:
         for item in resource.get_multiple():
             assert network_objects[counter] == item
             counter += 1
+
+
+class TestCount:
+    def test_method_calls_get_multiple(self, mocker, resource):
+        get_multiple_mock = mocker.patch('infoblox.resource.Resource.get_multiple')
+        get_multiple_mock.return_value = []
+        resource.count()
+
+        get_multiple_mock.assert_called_once_with(None, proxy_search=None)
+
+    @pytest.mark.parametrize(('networks', 'expected_value'), [
+        ([{'network': f'192.168.{i}.0/24'} for i in range(1, 5)], 4),
+        ([], 0),
+    ])
+    def test_method_returns_correct_value(self, responses, url, resource_name, resource, networks,
+                                          expected_value):
+        responses.replace(responses.GET, f'{url}/{resource_name}', json={'result': networks}, status=200)
+
+        assert expected_value == resource.count()
