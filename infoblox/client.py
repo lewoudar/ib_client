@@ -8,7 +8,7 @@ import requests
 
 from .resource import Resource
 from .exceptions import IncompatibleApiError, BadParameterError, ObjectNotFoundError
-from .helpers import handle_http_error
+from ._helpers import handle_http_error
 from .types import Schema
 
 

@@ -6,7 +6,7 @@ import requests
 
 from .exceptions import FieldNotFoundError, FunctionNotFoundError, BadParameterError, SearchOnlyFieldError,\
     FieldError, IncompatibleOperationError, MandatoryFieldError
-from .helpers import url_join, handle_http_error
+from ._helpers import url_join, handle_http_error
 from .types import Schema
 
 
