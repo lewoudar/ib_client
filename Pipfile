@@ -13,6 +13,7 @@ pytest-responses = "*"
 pytest-cov = "*"
 pytest = "*"
 bandit = "*"
+"flake8" = "*"
 
 [packages]
 requests = "*"
