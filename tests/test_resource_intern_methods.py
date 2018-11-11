@@ -3,8 +3,8 @@ import time
 
 import pytest
 
-from infoblox.exceptions import BadParameterError, FieldNotFoundError, SearchOnlyFieldError, \
-    UnknownReturnTypeError, FieldError, FunctionNotFoundError, IncompatibleOperationError
+from infoblox.exceptions import BadParameterError, FieldNotFoundError, SearchOnlyFieldError,\
+    FieldError, FunctionNotFoundError, IncompatibleOperationError
 
 
 # To understand tests, translate class names in kebab-case to know the targeted method tested.
@@ -262,23 +262,6 @@ class TestValidateReturnFields:
             resource.validate_return_fields(fields)
         except BadParameterError:
             pytest.fail('_validate_return_fields raise an error when giving correct arguments')
-
-
-class TestValidateReturnType:
-
-    @pytest.mark.parametrize('return_type', ['soap', 'application/csv'])
-    def test_method_raises_error_when_return_type_is_incorrect(self, resource, return_type):
-        with pytest.raises(UnknownReturnTypeError) as exc_info:
-            resource.validate_return_type(return_type)
-
-        assert f'{return_type} is not a valid return type' in str(exc_info.value)
-
-    @pytest.mark.parametrize('return_type', ['json', 'json-pretty', 'xml', 'xml-pretty'])
-    def test_method_does_not_raise_error_when_return_type_is_valid(self, resource, return_type):
-        try:
-            resource.validate_return_type(return_type)
-        except UnknownReturnTypeError:
-            pytest.fail(f'_validate_return_type raised an error with return type {return_type}')
 
 
 @pytest.mark.parametrize(('given_types', 'expected_types'), [

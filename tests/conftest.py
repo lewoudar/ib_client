@@ -379,9 +379,6 @@ class MyResource(Resource):
     def validate_return_fields(self, fields):
         self._validate_return_fields(fields)
 
-    def validate_return_type(self, return_type):
-        self._validate_return_type(return_type)
-
     def get_type_mapping(self, field_types):
         return self._get_type_mapping(field_types)
 

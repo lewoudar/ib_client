@@ -4,8 +4,8 @@ from typing import List, Dict, Any, Union, Iterator
 
 import requests
 
-from .exceptions import FieldNotFoundError, FunctionNotFoundError, BadParameterError, SearchOnlyFieldError, \
-    UnknownReturnTypeError, FieldError, IncompatibleOperationError, MandatoryFieldError
+from .exceptions import FieldNotFoundError, FunctionNotFoundError, BadParameterError, SearchOnlyFieldError,\
+    FieldError, IncompatibleOperationError, MandatoryFieldError
 from .helpers import url_join, handle_http_error
 from .types import Schema
 
@@ -157,13 +157,6 @@ class Resource:
                 raise SearchOnlyFieldError(f'{field} is a search only field. It cannot be returned')
 
     @staticmethod
-    def _validate_return_type(return_type: str) -> None:
-        """Validates if the return type is correct."""
-        return_types = ['json', 'xml', 'xml-pretty', 'json-pretty']
-        if return_type not in return_types:
-            raise UnknownReturnTypeError(f'{return_type} is not a valid return type. Valid values are {return_types}')
-
-    @staticmethod
     def _get_type_mapping(field_types: List[str]) -> tuple:
         """Translates field types to python types and returns it."""
         returned_types = []
@@ -282,16 +275,12 @@ class Resource:
         return parameters
 
     def _process_get_parameters(self, object_ref: str = None, params: dict = None, return_fields: List[str] = None,
-                                return_fields_plus: List[str] = None, proxy_search: str = None,
-                                return_type: str = 'json') -> dict:
+                                return_fields_plus: List[str] = None, proxy_search: str = None) -> dict:
         """
         Process and returns a dict representing query string to pass for the get operation.
         The description of parameters is the same as that of the get method.
         """
         parameters = {}
-        # validate return type
-        self._validate_return_type(return_type)
-        parameters['_return_type'] = return_type
         # validate params
         # we can't search by field name if we provide an object reference
         if params is not None and object_ref is None:
@@ -307,8 +296,7 @@ class Resource:
         return parameters
 
     def get(self, object_ref: str = None, params: dict = None, return_fields: List[str] = None,
-            return_fields_plus: List[str] = None, proxy_search: str = None,
-            return_type: str = 'json') -> Union[dict, List[dict]]:
+            return_fields_plus: List[str] = None, proxy_search: str = None) -> Union[dict, List[dict]]:
         """
         Performs get operations. Useful to get a specific object using its reference or just a few objects.
         If you know, you will get many objects, it is better to use the method "get_multiple".
@@ -318,11 +306,8 @@ class Resource:
         :param return_fields_plus: additional object fields (extensible attributes included) to return in addition of
         default fields.
         :param proxy_search: 'GM' or 'LOCAL'. See wapi documentation for more information.
-        :param return_type: data format for returned values. Possible values are 'json', 'json-pretty', 'xml',
-         'xml-pretty'
         """
-        parameters = self._process_get_parameters(object_ref, params, return_fields, return_fields_plus, proxy_search,
-                                                  return_type)
+        parameters = self._process_get_parameters(object_ref, params, return_fields, return_fields_plus, proxy_search)
         url = url_join(self._url, self._name)
         if object_ref is not None:
             if not isinstance(object_ref, str):
@@ -333,15 +318,13 @@ class Resource:
         return response.json()
 
     def get_multiple(self, params: dict = None, return_fields: List[str] = None,
-                     return_fields_plus: List[str] = None, proxy_search: str = None,
-                     return_type: str = 'json') -> Iterator[dict]:
+                     return_fields_plus: List[str] = None, proxy_search: str = None) -> Iterator[dict]:
         """
         Helper function to get multiple objects with memory efficiency.
         The description of parameters is the same as that of the get method.
         """
         parameters = self._process_get_parameters(object_ref=None, params=params, return_fields=return_fields,
-                                                  return_fields_plus=return_fields_plus, proxy_search=proxy_search,
-                                                  return_type=return_type)
+                                                  return_fields_plus=return_fields_plus, proxy_search=proxy_search)
         parameters['_return_as_object'] = 1
         parameters['_paging'] = 1
         parameters['_max_results'] = 1000

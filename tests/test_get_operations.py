@@ -2,16 +2,11 @@ from urllib.parse import urlencode
 
 import pytest
 
-from infoblox.exceptions import BadParameterError, UnknownReturnTypeError, FieldError, FieldNotFoundError, \
+from infoblox.exceptions import BadParameterError, FieldError, FieldNotFoundError, \
     SearchOnlyFieldError, HttpError
 
 
 class TestGetMethodRaisesDifferentParameterErrors:
-    @pytest.mark.parametrize('return_type', ['soap', 'application/csv'])
-    def test_get_method_raises_error_when_return_type_is_incorrect(self, resource, return_type):
-        with pytest.raises(UnknownReturnTypeError):
-            resource.get(return_type=return_type)
-
     @pytest.mark.parametrize('proxy_search', [4, 'foo', 'bar'])
     def test_get_method_raises_error_when_proxy_search_is_incorrect(self, resource, proxy_search):
         with pytest.raises(BadParameterError):
@@ -60,10 +55,11 @@ def test_get_method_raises_error_when_status_code_greater_or_equal_than_400(resp
 ])
 def test_get_method_is_called_with_correct_arguments(responses, url, resource_name, resource, parameters, query_dict):
     resource.get(**parameters)
-    params = {'_return_type': 'json'}
-    params = {**params, **query_dict}
+    resolved_url = f'{url}/{resource_name}'
+    if query_dict:
+        resolved_url = f'{resolved_url}?{urlencode(query_dict)}'
     # it is the second call to the url, because the first loads the schema
-    assert responses.calls[1].request.url == f'{url}/{resource_name}?{urlencode(params)}'
+    assert responses.calls[1].request.url == resolved_url
 
 
 def test_get_method_returns_correct_data(responses, url, resource_name, resource):
@@ -87,7 +83,7 @@ class TestGetObjectByReference:
         responses.add(responses.GET, object_url, json={'network': '10.1.0.0/16'}, status=200)
 
         resource.get(**parameters)
-        assert responses.calls[1].request.url == f'{object_url}?_return_type=json'
+        assert responses.calls[1].request.url == f'{object_url}'
 
     def test_get_method_returns_correct_data(self, responses, url, resource):
         payload = {'network': '10.1.0.0/16', 'networkview': 'default'}
@@ -107,7 +103,7 @@ class TestGetMultiple:
         list(resource.get_multiple())
 
         process_mock.assert_called_once_with(object_ref=None, params=None, return_fields=None, return_fields_plus=None,
-                                             proxy_search=None, return_type='json')
+                                             proxy_search=None)
 
     def test_method_raises_error_when_status_code_greater_or_equal_than_400(self, responses, url, resource_name,
                                                                             resource):

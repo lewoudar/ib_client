@@ -29,10 +29,6 @@ class SearchOnlyFieldError(BadParameterError):
     pass
 
 
-class UnknownReturnTypeError(BadParameterError):
-    pass
-
-
 class FieldError(BadParameterError):
     pass
 
