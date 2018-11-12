@@ -37,6 +37,10 @@ class NotFoundError(IBError):
     pass
 
 
+class FileError(NotFoundError):
+    pass
+
+
 class ObjectNotFoundError(NotFoundError):
     pass
 

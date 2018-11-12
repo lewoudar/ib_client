@@ -5,24 +5,26 @@ from urllib.parse import urlparse
 from typing import Union, Tuple
 
 import requests
+from dotenv import load_dotenv
 
 from .resource import Resource
-from .exceptions import IncompatibleApiError, BadParameterError, ObjectNotFoundError
+from .exceptions import IncompatibleApiError, BadParameterError, ObjectNotFoundError, FileError
 from ._helpers import handle_http_error
 from .types import Schema
 
 
 class IBClient:
 
-    def __init__(self, wapi_url: str = None, cert: Union[str, Tuple[str, str]] = None):
+    def __init__(self, wapi_url: str = None, cert: Union[str, Tuple[str, str]] = None, dot_env_path: str = None):
+        self._check_if_dot_env_file(dot_env_path)
         self._session = requests.Session()
         if cert is None:
             self._session.verify = False
         else:
             self._session.cert = cert
-        self._session.auth = (os.environ.get('IB_USER'), os.environ.get('IB_PASSWORD'))
+        self._session.auth = (os.getenv('IB_USER'), os.getenv('IB_PASSWORD'))
         self._url: str = self._get_start_url(wapi_url) if wapi_url is not None else \
-            self._get_start_url(os.environ.get('IB_URL'))
+            self._get_start_url(os.getenv('IB_URL'))
         self._schema: Schema = None
         # we load the api schema
         self._load_schema()
@@ -34,6 +36,17 @@ class IBClient:
     @property
     def available_objects(self) -> List[str]:
         return self._schema['supported_objects']
+
+    @staticmethod
+    def _check_if_dot_env_file(dot_env_path: str = None) -> None:
+        """Checks .env file presence and loads it."""
+        if dot_env_path is None:
+            return
+        if not isinstance(dot_env_path, str):
+            raise BadParameterError('dot_env_path must be a string')
+        if not os.path.isfile(dot_env_path):
+            raise FileError(f'{dot_env_path} is not a valid path')
+        load_dotenv(dotenv_path=dot_env_path)
 
     @staticmethod
     def _get_start_url(url: str) -> str:
