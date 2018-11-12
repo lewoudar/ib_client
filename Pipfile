@@ -18,3 +18,4 @@ bandit = "*"
 [packages]
 requests = "*"
 click = "*"
+python-dotenv = "*"
