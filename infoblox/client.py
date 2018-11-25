@@ -8,7 +8,7 @@ import requests
 from dotenv import load_dotenv
 
 from .resource import Resource
-from .exceptions import IncompatibleApiError, BadParameterError, ObjectNotFoundError, FileError
+from .exceptions import IncompatibleApiError, BadParameterError, ObjectNotFoundError, FileError, SSLError
 from ._helpers import handle_http_error
 from .types import Schema
 
@@ -18,13 +18,8 @@ class IBClient:
     def __init__(self, wapi_url: str = None, cert: Union[str, Tuple[str, str]] = None, dot_env_path: str = None):
         self._check_if_dot_env_file(dot_env_path)
         self._session = requests.Session()
-        if cert is None:
-            self._session.verify = False
-        else:
-            self._session.cert = cert
-        self._session.auth = (os.getenv('IB_USER'), os.getenv('IB_PASSWORD'))
-        self._url: str = self._get_start_url(wapi_url) if wapi_url is not None else \
-            self._get_start_url(os.getenv('IB_URL'))
+        self._set_session_credentials(cert)
+        self._url: str = self._get_start_url(wapi_url)
         self._schema: Schema = None
         # we load the api schema
         self._load_schema()
@@ -48,9 +43,29 @@ class IBClient:
             raise FileError(f'{dot_env_path} is not a valid path')
         load_dotenv(dotenv_path=dot_env_path)
 
+    def _set_session_credentials(self, cert: Union[str, Tuple[str, str]] = None) -> None:
+        """
+        Set the client certificate or ignore verifying the client certificate
+        :param cert: It may be a single path to the client certificate or a a tuple (certificate, private key).
+        For more information, see requests documentation
+        http://docs.python-requests.org/en/master/user/advanced/#client-side-certificates
+        """
+        if cert is None:
+            self._session.verify = False
+        else:
+            try:
+                self._session.cert = cert
+            except requests.exceptions.SSLError as e:
+                raise SSLError(e)
+        self._session.auth = (os.getenv('IB_USER'), os.getenv('IB_PASSWORD'))
+
     @staticmethod
-    def _get_start_url(url: str) -> str:
+    def _get_start_url(url: str = None) -> str:
         """Returns the base url to perform further wapi requests."""
+        url = url or os.getenv('IB_URL')
+        if url is None:
+            raise BadParameterError('you must provide url either by passing wapi_url in the __init__ method '
+                                    'or by setting environment variable IB_URL')
         error_message = f'{url} is not a valid http url'
         if not isinstance(url, str):
             raise BadParameterError(error_message)
