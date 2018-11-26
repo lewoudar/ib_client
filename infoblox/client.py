@@ -1,22 +1,25 @@
 import os
+import re
 import warnings
 from typing import List
-from urllib.parse import urlparse
 from typing import Union, Tuple
+from urllib.parse import urlparse
 
 import requests
 from dotenv import load_dotenv
 
+from ._helpers import handle_http_error, url_join
+from .exceptions import IncompatibleApiError, BadParameterError, ObjectNotFoundError, FileError
 from .resource import Resource
-from .exceptions import IncompatibleApiError, BadParameterError, ObjectNotFoundError, FileError, SSLError
-from ._helpers import handle_http_error
-from .types import Schema
+from .types import Schema, Json
+
+URL_PATH_REGEX = re.compile(r'/wapi/v\d\.\d+')
 
 
 class IBClient:
 
     def __init__(self, wapi_url: str = None, cert: Union[str, Tuple[str, str]] = None, dot_env_path: str = None):
-        self._check_if_dot_env_file(dot_env_path)
+        self._check_dot_env_file_presence(dot_env_path)
         self._session = requests.Session()
         self._set_session_credentials(cert)
         self._url: str = self._get_start_url(wapi_url)
@@ -33,7 +36,7 @@ class IBClient:
         return self._schema['supported_objects']
 
     @staticmethod
-    def _check_if_dot_env_file(dot_env_path: str = None) -> None:
+    def _check_dot_env_file_presence(dot_env_path: str = None) -> None:
         """Checks .env file presence and loads it."""
         if dot_env_path is None:
             return
@@ -53,10 +56,7 @@ class IBClient:
         if cert is None:
             self._session.verify = False
         else:
-            try:
-                self._session.cert = cert
-            except requests.exceptions.SSLError as e:
-                raise SSLError(e)
+            self._session.cert = cert
         self._session.auth = (os.getenv('IB_USER'), os.getenv('IB_PASSWORD'))
 
     @staticmethod
@@ -72,15 +72,16 @@ class IBClient:
         result = urlparse(url)
         if result.scheme not in ['http', 'https']:
             raise BadParameterError(error_message)
-        if not result.path.startswith('/wapi/v'):
+        if not URL_PATH_REGEX.match(result.path):
             raise BadParameterError(f'the url must be in the form http://host/wapi/vX.X, but you supplied: {url}')
         return f'{result.scheme}://{result.netloc}{result.path}'
 
     @staticmethod
     def _check_api_version(url: str) -> None:
+        """Checks if the api version is compatible with the project."""
         url_parts = url.split('/')
         version = url_parts[-1] if url_parts[-1].startswith('v') else url_parts[-2]
-        if version[1] == '1':
+        if int(version[1]) <= 1:
             raise IncompatibleApiError('the client supports in priority major version 2 of the api')
         if int(version[1]) >= 3:
             warnings.warn(f'The client is in priority for major version 2,'
@@ -96,17 +97,18 @@ class IBClient:
         self._schema = response.json()
 
     def get_object(self, name: str) -> Resource:
+        """Gets a resource object given an object name supported by wapi."""
         if name not in self.available_objects:
-            raise ObjectNotFoundError(f'there is no object {name} in current wapi api.')
+            raise ObjectNotFoundError(f'there is no object {name} in current wapi api')
         return Resource(self._session, self._url, name)
 
-    def custom_request(self):
-        # request api
-        pass
-
-    def upload_file(self, filename: str) -> None:
-        # todo: don't forget to do this
-        pass
-
-    def download_file(self, filename: str):
-        pass
+    def custom_request(self, data: Json = None):
+        """
+        Makes a custom request using the wapi request object.
+        :param data: request payload.
+        """
+        if data is None:
+            raise BadParameterError('data must not be empty')
+        response = self._session.post(url_join(self._url, 'request'), json=data)
+        handle_http_error(response)
+        return response.json()

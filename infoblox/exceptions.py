@@ -17,10 +17,6 @@ class IncompatibleApiError(IBError):
     pass
 
 
-class SSLError(IBError):
-    pass
-
-
 class IncompatibleOperationError(BadParameterError):
     pass
 
