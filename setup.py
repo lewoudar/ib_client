@@ -1,8 +1,10 @@
 from setuptools import find_packages, setup
 
+from infoblox import __version__
+
 setup(
     name='infoblox-client',
-    version='0.1.0',
+    version=__version__,
     author='Kevin Tewouda',
     author_email='lewoudar@gmail.com',
     description='Infoblox client',

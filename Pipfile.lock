@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "3462245528378118b876493bd7190d91534d80008e41fe01497f1cc0fa6d5c61"
+            "sha256": "69af6d38ff9560342cffa6df9707428f217156b0f0ac4c3b48640051f9963cbe"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -44,6 +44,10 @@
                 "sha256:684a38a6f903c1d71d6d5fac066b58d7768af4de2b832e426ec79c30daa94a16"
             ],
             "version": "==2.7"
+        },
+        "infoblox-client": {
+            "editable": true,
+            "path": "."
         },
         "pygments": {
             "hashes": [
@@ -371,7 +375,8 @@
         },
         "smmap2": {
             "hashes": [
-                "sha256:0555a7bf4df71d1ef4218e4807bbf9b201f910174e6e08af2e138d4e517b4dde"
+                "sha256:0555a7bf4df71d1ef4218e4807bbf9b201f910174e6e08af2e138d4e517b4dde",
+                "sha256:29a9ffa0497e7f2be94ca0ed1ca1aa3cd4cf25a1f6b4f5f87f74b46ed91d609a"
             ],
             "version": "==2.0.5"
         },
