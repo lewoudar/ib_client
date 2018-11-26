@@ -11,7 +11,8 @@ setup(
     zip_safe=False,
     install_requires=[
         'requests',
-        'click'
+        'click',
+        'pygments'
     ],
     classifiers=[
         'Development Status :: 3 - Alpha',
@@ -29,7 +30,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'ibc=scripts:cli'
+            'ibc=infoblox.scripts:cli'
         ],
     },
 )
