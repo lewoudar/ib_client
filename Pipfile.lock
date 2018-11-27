@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "69af6d38ff9560342cffa6df9707428f217156b0f0ac4c3b48640051f9963cbe"
+            "sha256": "3462245528378118b876493bd7190d91534d80008e41fe01497f1cc0fa6d5c61"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -44,10 +44,6 @@
                 "sha256:684a38a6f903c1d71d6d5fac066b58d7768af4de2b832e426ec79c30daa94a16"
             ],
             "version": "==2.7"
-        },
-        "infoblox-client": {
-            "editable": true,
-            "path": "."
         },
         "pygments": {
             "hashes": [

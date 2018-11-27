@@ -20,4 +20,3 @@ requests = "*"
 click = "*"
 python-dotenv = "*"
 pygments = "*"
-infoblox-client = {editable = true,path = "."}
