@@ -10,14 +10,9 @@ from infoblox.resource import Resource
 
 
 @pytest.fixture
-def client_url():
-    return 'http://foo/wapi/v2.9'
-
-
-@pytest.fixture
-def client(responses, api_schema, client_url):
-    responses.add(responses.GET, client_url, json=api_schema, status=200)
-    return IBClient(client_url)
+def client(responses, api_schema, url):
+    responses.add(responses.GET, f'{url}/', json=api_schema, status=200)
+    return IBClient(url)
 
 
 class TestDotEnvFile:
@@ -189,7 +184,7 @@ class TestLoadSchema:
     # test method _load_schema
 
     def test_method_called_check_api_version_with_correct_argument(self, mocker, responses, api_schema):
-        url = 'http://foo/wapi/v2.9'
+        url = 'http://foo/wapi/v2.9/'
         responses.add(responses.GET, url, json=api_schema, status=200)
         check_api_mock = mocker.patch('infoblox.client.IBClient._check_api_version')
         IBClient(url)
@@ -198,14 +193,14 @@ class TestLoadSchema:
 
     @pytest.mark.parametrize('status_code', [400, 500])
     def test_method_raises_error_when_response_status_code_greater_or_equal_than_400(self, responses, status_code):
-        url = 'http://foo/wapi/v2.9'
+        url = 'http://foo/wapi/v2.9/'
         responses.add(responses.GET, url, json={'error': 'oops'}, status=status_code)
 
         with pytest.raises(HttpError):
             IBClient(url)
 
     def test_method_loads_schema_when_called_correctly(self, responses, api_schema):
-        url = 'http://foo/wapi/v2.9'
+        url = 'http://foo/wapi/v2.9/'
         responses.add(responses.GET, url, json=api_schema, status=200)
         client = IBClient(url)
 
@@ -228,7 +223,7 @@ class TestInit:
         start_url_mock.assert_called_once_with('http://foo/wapi/v2.9')
         load_schema_mock.assert_called_once()
 
-    def test_available_objects_property_is_initialized(self, client, api_schema):
+    def test_available_objects_property_is_initialized(self, api_schema, client):
         assert api_schema['supported_objects'] == client.available_objects
 
 
@@ -241,8 +236,7 @@ class TestGetObject:
 
         assert f'there is no object {object_name} in current wapi api' == str(exc_info.value)
 
-    def test_method_returns_a_resource_instance(self, responses, network_schema, client):
-        url = 'http://foo/wapi/v2.9'
+    def test_method_returns_a_resource_instance(self, responses, url, network_schema, client):
         object_name = 'network'
         responses.add(responses.GET, f'{url}/{object_name}', json=network_schema, status=200)
 
@@ -258,23 +252,23 @@ class TestCustomRequest:
         assert 'data must not be empty' == str(exc_info.value)
 
     @pytest.mark.parametrize('status_code', [400, 500])
-    def test_method_raises_error_when_response_status_is_greater_or_equal_than_400(self, responses, client, client_url,
+    def test_method_raises_error_when_response_status_is_greater_or_equal_than_400(self, responses, client, url,
                                                                                    status_code):
         def request_callback(*_):
             return status_code, {}, json.dumps({'error': 'oops'})
 
-        responses.add_callback(responses.POST, f'{client_url}/request', content_type='application/json',
+        responses.add_callback(responses.POST, f'{url}/request', content_type='application/json',
                                callback=request_callback)
         with pytest.raises(HttpError):
             client.custom_request('foo')
 
-    def test_method_returns_data_when_call_is_correct(self, responses, client_url, client):
+    def test_method_returns_data_when_call_is_correct(self, responses, url, client):
         data = {'hello': 'world'}
 
         def request_callback(request):
             return 200, {}, request.body
 
-        responses.add_callback(responses.POST, f'{client_url}/request', content_type='application/json',
+        responses.add_callback(responses.POST, f'{url}/request', content_type='application/json',
                                callback=request_callback)
 
         assert data == client.custom_request(data)

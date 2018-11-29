@@ -92,7 +92,9 @@ class IBClient:
         # we check if the api version is supported
         self._check_api_version(self._url)
         params = {'_schema': 1, '_schema_version': 2, '_schema_searchable': 1}
-        response = self._session.get(self._url, params=params)
+        # if we don't add a "/" at the end of the url, we will get a 400 status error
+        url = self._url if self._url.endswith('/') else f'{self._url}/'
+        response = self._session.get(url, params=params)
         handle_http_error(response)
         self._schema = response.json()
 
