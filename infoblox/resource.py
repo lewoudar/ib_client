@@ -47,7 +47,7 @@ class Resource:
 
     def _load_schema(self) -> None:
         """Loads the model schema."""
-        params = {'_schema': '1', '_schema_version': '2', '_get_doc': '1'}
+        params = {'_schema': '1', '_schema_version': '2', '_get_doc': '1', '_schema_searchable': 1}
         response = self._session.get(url_join(self._url, self._name), params=params)
         handle_http_error(response)
         self._schema = response.json()
