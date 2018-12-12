@@ -9,12 +9,6 @@ from infoblox.exceptions import BadParameterError, FileError, IncompatibleApiErr
 from infoblox.resource import Resource
 
 
-@pytest.fixture
-def client(responses, api_schema, url):
-    responses.add(responses.GET, f'{url}/', json=api_schema, status=200)
-    return IBClient(url)
-
-
 class TestDotEnvFile:
     # test method _check_dot_env_file_presence
     class Client(IBClient):

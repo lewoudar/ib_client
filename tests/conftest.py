@@ -1,6 +1,11 @@
+import os
+import tempfile
+
 import pytest
 import requests
+from click.testing import CliRunner
 
+from infoblox.client import IBClient
 from infoblox.resource import Resource
 
 
@@ -417,3 +422,29 @@ def resource_name():
 def resource(responses, url, resource_name, network_schema):
     responses.add(responses.GET, f'{url}/{resource_name}', json=network_schema, status=200)
     return MyResource(requests.Session(), url, resource_name)
+
+
+@pytest.fixture(scope='session')
+def runner():
+    return CliRunner()
+
+
+@pytest.fixture
+def client(responses, api_schema, url):
+    responses.add(responses.GET, f'{url}/', json=api_schema, status=200)
+    return IBClient(url)
+
+
+@pytest.fixture
+def env_settings(url):
+    """This fixture is useful for scripts testing."""
+    os.environ['IB_USER'] = 'foo'
+    os.environ['IB_PASSWORD'] = 'foo'
+    # the "/" at the end is to avoid an issue with responses fixture when we load the api schema
+    os.environ['IB_URL'] = f'{url}/'
+
+
+@pytest.fixture
+def tempdir():
+    with tempfile.TemporaryDirectory() as temp_dir:
+        yield temp_dir
