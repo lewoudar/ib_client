@@ -4,8 +4,8 @@ from typing import List, Dict, Any, Union, Iterator
 
 import requests
 
-from .exceptions import FieldNotFoundError, FunctionNotFoundError, BadParameterError, SearchOnlyFieldError,\
-    FieldError, IncompatibleOperationError, MandatoryFieldError
+from .exceptions import FieldNotFoundError, FunctionNotFoundError, BadParameterError, SearchOnlyFieldError, \
+    FieldError, IncompatibleOperationError, MandatoryFieldError, NotSearchableFieldError
 from ._helpers import url_join, handle_http_error
 from .types import Schema
 
@@ -151,7 +151,7 @@ class Resource:
                 raise BadParameterError(f'{error_prefix}, but you provide {field}')
             if '.' in field.strip('.'):  # we don't check sub object field
                 continue
-            # we need to make sure that the field we want to recover is not read-only
+            # we need to make sure that the field we want to fetch is not read-only
             field_info = self.get_field_information(field)
             if field_info['supports'] == ['search']:
                 raise SearchOnlyFieldError(f'{field} is a search only field. It cannot be returned')
@@ -200,6 +200,8 @@ class Resource:
         :param value: field value.
         :param field_info: field information. Look at method get_field_information.
         """
+        # todo: think about struct data. Is it possible to perform recursive control?
+        #   It seems that some structures points to other infoblox objects which makes it hard to do controls
         field_information = field_info or self.get_field_information(name)
         is_array: bool = field_information['is_array']
         wapi_primitive: str = field_information.get('wapi_primitive', '')
@@ -214,7 +216,6 @@ class Resource:
         # we check non array values
         if not is_array:
             if wapi_primitive and wapi_primitive == 'struct':
-                # todo: recursive control.
                 self._check_single_field_value(name, value, (dict,), field_types, is_struct=True)
             else:
                 self._check_single_field_value(name, value, self._get_type_mapping(field_types), field_types)
@@ -224,7 +225,6 @@ class Resource:
             raise FieldError(f'{name} must be a list of values, but you provide {value}')
         for item in value:
             if wapi_primitive and wapi_primitive == 'struct':
-                # todo: recursive control.
                 self._check_single_field_value(name, item, (dict,), field_types, is_struct=True, is_list=True)
             else:
                 self._check_single_field_value(name, item, self._get_type_mapping(field_types), field_types,
@@ -238,16 +238,18 @@ class Resource:
         for name, value in params.items():
             if name[0] == '*':  # we don't handle extensible attributes
                 continue
-            parts = re.split(r'([~=<>!])', name)
+            parts = re.split(r'([~<>!])', name)
             search_modifiers = parts[1::2]
-
             field_name = parts[0]
-            field_info: Schema = self.get_field_information(field_name)
+            field_info = self.get_field_information(field_name)
+
+            if not field_info['searchable_by']:
+                raise NotSearchableFieldError(f'{field_name} is not searchable')
             for modifier in search_modifiers:
                 if modifier not in field_info['searchable_by']:
                     raise FieldError(f'{modifier} is not a valid modifier for field {field_name}')
 
-            self._check_field_value(field_name, value)
+            self._check_field_value(field_name, value, field_info)
 
     @staticmethod
     def _check_proxy_search_value(proxy_search: str):
@@ -307,12 +309,13 @@ class Resource:
         default fields.
         :param proxy_search: 'GM' or 'LOCAL'. See wapi documentation for more information.
         """
-        parameters = self._process_get_parameters(object_ref, params, return_fields, return_fields_plus, proxy_search)
-        url = url_join(self._url, self._name)
         if object_ref is not None:
             if not isinstance(object_ref, str):
                 raise BadParameterError(f'object_ref must be a string but you provide {object_ref}')
             url = url_join(self._url, object_ref)
+        else:
+            url = url_join(self._url, self._name)
+        parameters = self._process_get_parameters(object_ref, params, return_fields, return_fields_plus, proxy_search)
         response = self._session.get(url, params=parameters)
         handle_http_error(response)
         return response.json()

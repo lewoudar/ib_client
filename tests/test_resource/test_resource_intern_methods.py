@@ -3,8 +3,8 @@ import time
 
 import pytest
 
-from infoblox.exceptions import BadParameterError, FieldNotFoundError, SearchOnlyFieldError,\
-    FieldError, FunctionNotFoundError, IncompatibleOperationError
+from infoblox.exceptions import BadParameterError, FieldNotFoundError, SearchOnlyFieldError, \
+    FieldError, FunctionNotFoundError, IncompatibleOperationError, NotSearchableFieldError
 
 
 # To understand tests, translate class names in kebab-case to know the targeted method tested.
@@ -307,7 +307,7 @@ class TestCheckFieldValue:
 class TestValidateParams:
 
     @pytest.mark.parametrize(('parameters', 'error_message'), [
-        ({'authority': 'foo'}, "must have one of the following types: ['bool']"),
+        ({'ipv4addr': True}, "must have one of the following types: ['string']"),
         ({'contains_address!': '10.0.0.4'}, 'is not a valid modifier')
     ])
     def test_method_raises_error_when_parameters_are_incorrect(self, resource, parameters, error_message):
@@ -318,8 +318,17 @@ class TestValidateParams:
 
     @pytest.mark.parametrize('parameters', [
         {'authority': True},
+        {'email_list': ['']}
+    ])
+    def test_method_raises_error_when_parameters_are_not_searchable(self, resource, parameters):
+        with pytest.raises(NotSearchableFieldError) as exc_info:
+            resource.validate_params(parameters)
+
+        assert 'is not searchable' in str(exc_info.value)
+
+    @pytest.mark.parametrize('parameters', [
         {'*Name': 'foo'},
-        {'contains_address=': '10.0.0.4'}
+        {'contains_address': '10.0.0.4'}
     ])
     def test_method_does_not_raise_error_when_parameters_are_correct(self, resource, parameters):
         try:

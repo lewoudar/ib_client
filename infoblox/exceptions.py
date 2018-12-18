@@ -25,11 +25,15 @@ class MandatoryFieldError(BadParameterError):
     pass
 
 
-class SearchOnlyFieldError(BadParameterError):
+class FieldError(BadParameterError):
     pass
 
 
-class FieldError(BadParameterError):
+class SearchOnlyFieldError(FieldError):
+    pass
+
+
+class NotSearchableFieldError(FieldError):
     pass
 
 
