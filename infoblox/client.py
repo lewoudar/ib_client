@@ -101,7 +101,7 @@ class IBClient:
     def get_object(self, name: str) -> Resource:
         """Gets a resource object given an object name supported by wapi."""
         if name not in self.available_objects:
-            raise ObjectNotFoundError(f'there is no object {name} in current wapi api')
+            raise ObjectNotFoundError(f'{name} is not a valid infoblox object')
         return Resource(self._session, self._url, name)
 
     def custom_request(self, data: Json = None):

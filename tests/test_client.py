@@ -228,7 +228,7 @@ class TestGetObject:
         with pytest.raises(ObjectNotFoundError) as exc_info:
             client.get_object(object_name)
 
-        assert f'there is no object {object_name} in current wapi api' == str(exc_info.value)
+        assert f'{object_name} is not a valid infoblox object' == str(exc_info.value)
 
     def test_method_returns_a_resource_instance(self, responses, url, network_schema, client):
         object_name = 'network'
