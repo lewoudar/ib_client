@@ -554,7 +554,7 @@ class Resource:
         payload = {}
         for key, value in kwargs.items():
             if key not in input_fields:
-                raise BadParameterError(f'{key} is not a valid input field for {function_name} function')
+                raise BadParameterError(f'{key} is not a valid argument for {function_name} function')
             self._check_field_value(key, value, self._get_field_info_from_function_info(function_info, key))
             payload[key] = value
 

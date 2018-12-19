@@ -160,7 +160,7 @@ class TestFuncCall:
         with pytest.raises(BadParameterError) as exc_info:
             resource.func_call(object_ref='ref', function_name=function_name, **field_parameter)
 
-        assert f'is not a valid input field for {function_name} function' in str(exc_info.value)
+        assert f'is not a valid argument for {function_name} function' in str(exc_info.value)
 
     @pytest.mark.parametrize(('field_parameter', 'error_message'), [
         ({'num': 'foo'}, 'must have one of the following types'),
