@@ -6,7 +6,8 @@ import pytest
 
 # noinspection PyProtectedMember
 from infoblox.scripts.utils import (
-    pretty_echo, _get_delimiter, _parse_item, parse_dict_items, handle_json_file, handle_json_arguments
+    pretty_echo, _get_delimiter, _parse_item, parse_dict_items, handle_json_file, handle_json_arguments,
+    check_environment
 )
 
 
@@ -222,3 +223,31 @@ class TestHandleJsonArguments:
     def test_function_prints_infoblox_result(self, context, command, items, expected_result):
         # noinspection PyTypeChecker
         assert expected_result == handle_json_arguments(context, command, items)
+
+
+class TestCheckEnvironment:
+    # test function check_environment
+    @pytest.mark.parametrize(('environment', 'missing_env_var'), [
+        ({'IB_USER': 'foo', 'IB_PASSWORD': 'bar'}, 'IB_URL'),
+        ({'IB_USER': 'foo', 'IB_URL': 'bar'}, 'IB_PASSWORD'),
+        ({'IB_PASSWORD': 'foo', 'IB_URL': 'bar'}, 'IB_USER'),
+    ])
+    def test_function_raises_error_if_env_variable_is_missing(self, monkeypatch, env_vars, environment,
+                                                              missing_env_var):
+        # conftest initializes these environment variables, so we need first to remove these
+        # environment variables
+        for key in env_vars:
+            monkeypatch.delenv(key)
+        for key, value in environment.items():
+            monkeypatch.setenv(key, value)
+        with pytest.raises(click.UsageError) as exc_info:
+            check_environment()
+
+        assert f'{missing_env_var} environment variable must be set before using ib.' == str(exc_info.value)
+
+    def test_function_does_not_raises_error_when_env_variables_are_set(self):
+        try:
+            # conftest already initializes these environment variables
+            check_environment()
+        except click.UsageError:
+            pytest.fail('check_environment fails with env variables set')

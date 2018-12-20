@@ -1,3 +1,4 @@
+import os
 import json
 from typing import Any, Sequence, Optional
 
@@ -19,6 +20,7 @@ def pretty_echo(data: Any) -> None:
     click.echo(highlight(json.dumps(data, indent=4), json_lexer, console_formatter))
 
 
+# noinspection PyUnusedLocal
 def handle_json_file(context: click.Context, param: click.Parameter, json_file: str) -> None:
     """
     Gets dict from json_file, executes Client.custom_request method and exits program.
@@ -92,6 +94,7 @@ def parse_dict_items(data: Sequence[str]) -> dict:
     return info
 
 
+# noinspection PyUnusedLocal
 def handle_json_arguments(context: click.Context, param: click.Parameter, items: Sequence[str]) -> Optional[dict]:
     """
     Assembles the input dictionary elements into a single dictionary and returns it
@@ -102,3 +105,10 @@ def handle_json_arguments(context: click.Context, param: click.Parameter, items:
     if not items or context.resilient_parsing:
         return
     return parse_dict_items(items)
+
+
+def check_environment() -> None:
+    """Check initialization of environment variables to configure cli."""
+    for item in ['IB_USER', 'IB_PASSWORD', 'IB_URL']:
+        if os.getenv(item) is None:
+            raise click.UsageError(f'{item} environment variable must be set before using ib.')

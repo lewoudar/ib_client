@@ -49,6 +49,17 @@ def network_schema():
                 ]
             },
             {
+                "doc": "The IPv4 Address of the network.",
+                "is_array": False,
+                "name": "ipv4addr",
+                "searchable_by": "=~",
+                "standard_field": False,
+                "supports": "rwus",
+                "type": [
+                    "string"
+                ]
+            },
+            {
                 "doc": "The network address in IPv4 Address/CIDR format. For regular expression searches,"
                        " only the IPv4 Address portion is supported. Searches for the CIDR portion is always"
                        " an exact match. For example, both network containers 10.0.0.0/8 and 20.1.0.0/16 are matched"
@@ -372,8 +383,7 @@ def network_schema():
     }
 
 
-# this is done to avoid using directly protected methods. My editor Pycharm does not
-# like that :(
+# this is done to avoid using directly protected methods and raises Pycharm errors
 class MyResource(Resource):
     def get_field_support_information(self, support_string):
         return self._get_field_support_information(support_string)
@@ -410,41 +420,55 @@ class MyResource(Resource):
 
 @pytest.fixture(scope='session')
 def url():
+    """Url used for tests."""
     return 'http://foo/wapi/v2.9'
 
 
 @pytest.fixture(scope='session')
 def resource_name():
+    """Name of the resource used for tests."""
     return 'network'
 
 
 @pytest.fixture
 def resource(responses, url, resource_name, network_schema):
+    """Network resource for test purposes."""
     responses.add(responses.GET, f'{url}/{resource_name}', json=network_schema, status=200)
     return MyResource(requests.Session(), url, resource_name)
 
 
 @pytest.fixture(scope='session')
 def runner():
+    """Cli test runner."""
     return CliRunner()
 
 
 @pytest.fixture
 def client(responses, api_schema, url):
+    """Test client."""
     responses.add(responses.GET, f'{url}/', json=api_schema, status=200)
     return IBClient(url)
 
 
 @pytest.fixture
-def env_settings(url):
+def env_vars():
+    """Client environment variables."""
+    return ['IB_URL', 'IB_PASSWORD', 'IB_USER']
+
+
+@pytest.fixture
+def env_settings(url, env_vars):
     """This fixture is useful for scripts testing."""
-    os.environ['IB_USER'] = 'foo'
-    os.environ['IB_PASSWORD'] = 'foo'
-    # the "/" at the end is to avoid an issue with responses fixture when we load the api schema
-    os.environ['IB_URL'] = f'{url}/'
+    for env_var in env_vars:
+        if env_var == 'IB_URL':
+            # the "/" at the end is to avoid an issue with responses fixture when we load the api schema
+            os.environ[env_var] = f'{url}/'
+        else:
+            os.environ[env_var] = 'foo'
 
 
 @pytest.fixture
 def tempdir():
+    """Creates a temporary directory and returns its path for test purposes."""
     with tempfile.TemporaryDirectory() as temp_dir:
         yield temp_dir
