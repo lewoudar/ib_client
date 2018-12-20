@@ -461,7 +461,7 @@ class Resource:
         if not isinstance(object_ref, str):
             raise BadParameterError(f'object_ref must be a string but you provide {object_ref}')
 
-    def modify(self, object_ref: str = None, schedule_time: int = None, schedule_now: bool = False,
+    def update(self, object_ref: str = None, schedule_time: int = None, schedule_now: bool = False,
                schedule_predecessor_task: str = None, schedule_warn_level: str = None, approval_comment: str = None,
                approval_query_mode: str = None, approval_ticket_number: int = None, return_fields: List[str] = None,
                return_fields_plus: List[str] = None, **kwargs) -> Union[str, dict]:

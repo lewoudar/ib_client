@@ -156,7 +156,7 @@ def update(obj, object_ref=None, schedule_time=None, schedule_now=None, predeces
            arguments=None):
     """Updates an infoblox object given its reference."""
     try:
-        response = obj.resource.modify(object_ref, schedule_time, schedule_now, predecessor_task, warn_level,
+        response = obj.resource.update(object_ref, schedule_time, schedule_now, predecessor_task, warn_level,
                                        approval_comment, query_mode, ticket_number, return_fields, return_fields_plus,
                                        **arguments)
         pretty_echo(response)
