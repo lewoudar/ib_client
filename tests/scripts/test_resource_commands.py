@@ -88,7 +88,7 @@ class TestGetFunctionInfoCommand:
         assert 0 == result.exit_code
 
     def test_commands_raises_error_when_function_name_is_unknown(self, runner, resource_name):
-        result = runner.invoke(cli, ['object', '-n', resource_name, 'field-info', '-n', 'foo'])
+        result = runner.invoke(cli, ['object', '-n', resource_name, 'func-info', '-n', 'foo'])
 
         assert_in_output(2, 'does not exist', result)
 
