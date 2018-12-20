@@ -1,5 +1,6 @@
 from setuptools import find_packages, setup
 
+# noinspection PyProtectedMember
 from infoblox import __version__
 
 setup(
@@ -17,7 +18,6 @@ setup(
         'pygments'
     ],
     classifiers=[
-        'Development Status :: 3 - Alpha',
         'Environment :: Web Environment',
         'Environment :: Console',
         'Intended Audience :: Developers',
