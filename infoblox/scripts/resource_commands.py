@@ -38,7 +38,7 @@ def fields(obj):
 @resource.command()
 @click.pass_obj
 def functions(obj):
-    """List all object functions."""
+    """Lists all object functions."""
     pretty_echo(obj.resource.functions)
 
 
@@ -46,7 +46,7 @@ def functions(obj):
 @click.option('-n', '--name', prompt='field name', help='name of the field whose information is required')
 @click.pass_obj
 def get_field_information(obj, name):
-    """Get object's field information."""
+    """Gets object's field information."""
     try:
         pretty_echo(obj.resource.get_field_information(name))
     except FieldNotFoundError as e:
@@ -57,7 +57,7 @@ def get_field_information(obj, name):
 @click.option('-n', '--name', prompt='function name', help='name of the function whose information is required')
 @click.pass_obj
 def get_function_information(obj, name):
-    """Get object's function information."""
+    """Gets object's function information."""
     try:
         pretty_echo(obj.resource.get_function_information(name))
     except FunctionNotFoundError as e:
@@ -82,7 +82,7 @@ def get(obj, object_ref=None, params=None, return_fields=None, return_fields_plu
         raise click.UsageError(e)
 
 
-@resource.command()
+@resource.command(short_help='Counts infoblox objects.')
 @params_option
 @proxy_search_option
 @click.pass_obj
@@ -98,7 +98,7 @@ def count(obj, params=None, proxy_search=None):
         raise click.UsageError(e)
 
 
-@resource.command('func-call')
+@resource.command('func-call', short_help='Calls a function of an infoblox object.')
 @object_ref_option
 @click.option('-n', '--name', prompt='function name', help='name of the function to call')
 @arguments_option

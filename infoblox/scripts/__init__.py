@@ -6,9 +6,11 @@ from infoblox.scripts.client_commands import api_schema, available_objects, cust
 from infoblox.scripts.resource_commands import resource
 from infoblox.scripts.utils import check_environment
 
+CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
+
 
 @click.version_option(__version__)
-@click.group()
+@click.group(context_settings=CONTEXT_SETTINGS)
 @click.pass_context
 def cli(context):
     """
