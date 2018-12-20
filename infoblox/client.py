@@ -16,7 +16,7 @@ from .types import Schema, Json
 URL_PATH_REGEX = re.compile(r'/wapi/v\d\.\d+')
 
 
-class IBClient:
+class Client:
 
     def __init__(self, wapi_url: str = None, cert: Union[str, Tuple[str, str]] = None, dot_env_path: str = None):
         self._check_dot_env_file_presence(dot_env_path)

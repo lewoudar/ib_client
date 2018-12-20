@@ -1,7 +1,7 @@
 import click
 
 # noinspection PyProtectedMember
-from infoblox import __version__, IBClient, Resource
+from infoblox import __version__, Client, Resource
 from infoblox.scripts.client_commands import api_schema, available_objects, custom_request
 from infoblox.scripts.resource_commands import resource
 from infoblox.scripts.utils import check_environment
@@ -21,7 +21,7 @@ def cli(context):
 
     class Container:
         def __init__(self):
-            self.client = IBClient()
+            self.client = Client()
             self.resource: Resource = None
 
     context.obj = Container()

@@ -5,7 +5,7 @@ import pytest
 import requests
 from click.testing import CliRunner
 
-from infoblox.client import IBClient
+from infoblox.client import Client
 from infoblox.resource import Resource
 
 
@@ -447,7 +447,7 @@ def runner():
 def client(responses, api_schema, url):
     """Test client."""
     responses.add(responses.GET, f'{url}/', json=api_schema, status=200)
-    return IBClient(url)
+    return Client(url)
 
 
 @pytest.fixture
