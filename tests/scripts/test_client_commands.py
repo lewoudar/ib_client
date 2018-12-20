@@ -4,28 +4,19 @@ import os
 import pytest
 
 from infoblox.scripts import cli
+from tests.helpers import assert_list_items, assert_in_output
 
 pytestmark = pytest.mark.usefixtures('client', 'env_settings')
 
 
 def test_schema_command_returns_correct_output(runner):
     result = runner.invoke(cli, ['schema'])
-    assert 0 == result.exit_code
-    captured = result.output
-    assert 'requested_version' in captured
-    assert 'supported_objects' in captured
-    assert 'supported_versions' in captured
-    assert 'schema_version' in captured
+    assert_list_items(0, ['requested_version', 'supported_objects', 'supported_versions', 'schema_version'], result)
 
 
 def test_objects_command_returns_correct_output(runner):
     result = runner.invoke(cli, ['objects'])
-    assert 0 == result.exit_code
-    captured = result.output
-    assert 'ipv4address' in captured
-    assert 'ipv6networkcontainer' in captured
-    assert 'macfilteraddress' in captured
-    assert 'network' in captured
+    assert_list_items(0, ['ipv4address', 'ipv6networkcontainer', 'macfilteraddress', 'network'], result)
 
 
 class TestRequestCommand:
@@ -44,9 +35,7 @@ class TestRequestCommand:
             json.dump({'foo': 'bar'}, f)
         result = runner.invoke(cli, ['request', '-j', filename])
 
-        assert 0 == result.exit_code
-        assert 'hello' in result.output
-        assert 'world' in result.output
+        assert_list_items(0, ['hello', 'world'], result)
 
     @pytest.mark.parametrize(('input_data', 'expected_items'), [
         ('foo=bar', ['foo', 'bar']),
@@ -63,9 +52,7 @@ class TestRequestCommand:
 
         result = runner.invoke(cli, ['request', input_data])
 
-        assert 0 == result.exit_code
-        for item in expected_items:
-            assert item in result.output
+        assert_list_items(0, expected_items, result)
 
     @pytest.mark.parametrize(('json_file', 'command_options'), [
         ('hello.json', ['-j', 'hello.json', 'foo=bar']),
@@ -87,15 +74,12 @@ class TestRequestCommand:
         command_options[index] = filename
         result = runner.invoke(cli, ['request', *command_options])
 
-        assert 0 == result.exit_code, result.output
-        assert 'hello' in result.output
-        assert 'world' in result.output
+        assert_list_items(0, ['hello', 'world'], result)
 
     def test_command_raises_error_when_no_argument_is_provided(self, runner):
         result = runner.invoke(cli, ['request'])
 
-        assert 2 == result.exit_code
-        assert 'Missing argument' in result.output
+        assert_in_output(2, 'Missing argument', result)
 
     def test_command_prints_error_when_infoblox_returns_error(self, responses, url, runner):
         def request_callback(request):
@@ -106,6 +90,4 @@ class TestRequestCommand:
 
         result = runner.invoke(cli, ['request', 'foo=bar'])
 
-        assert 0 == result.exit_code
-        assert 'foo' in result.output
-        assert 'bar' in result.output
+        assert_list_items(0, ['foo', 'bar'], result)
