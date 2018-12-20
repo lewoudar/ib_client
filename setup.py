@@ -32,7 +32,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'ibc=infoblox.scripts:cli'
+            'ib=infoblox.scripts:cli'
         ],
     },
 )
