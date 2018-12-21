@@ -15,7 +15,9 @@ setup(
     install_requires=[
         'requests',
         'click',
-        'pygments'
+        'pygments',
+        'python-dotenv',
+        'click-didyoumean'
     ],
     classifiers=[
         'Environment :: Web Environment',
