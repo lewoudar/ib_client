@@ -15,7 +15,7 @@ from .utils import pretty_echo
               help='wapi object you want to interact with')
 @click.pass_obj
 def resource(obj, wapi_object):
-    """Perform various object operations."""
+    """Performs various object operations."""
     try:
         obj.resource = obj.client.get_object(wapi_object)
     except ObjectNotFoundError as e:

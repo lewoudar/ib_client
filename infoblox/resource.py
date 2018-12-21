@@ -20,9 +20,7 @@ class Resource:
         self._load_schema()
         # fields we get by default when we fetch resource objects without changing
         # returned fields
-        self._default_get_fields: List[str] = []
-        # fields necessary to create the resource object in infoblox
-        self._default_post_fields: List[str] = []
+        self._standard_fields: List[str] = []
         # list of all fields inside the schema
         self._fields: List[str] = []
         # list of all functions inside the schema
@@ -47,7 +45,7 @@ class Resource:
 
     def _load_schema(self) -> None:
         """Loads the model schema."""
-        params = {'_schema': '1', '_schema_version': '2', '_get_doc': '1', '_schema_searchable': 1}
+        params = {'_schema': 1, '_schema_version': 2, '_get_doc': 1, '_schema_searchable': 1}
         response = self._session.get(url_join(self._url, self._name), params=params)
         handle_http_error(response)
         self._schema = response.json()
@@ -59,9 +57,7 @@ class Resource:
                 self._functions.append(field['name'])
             else:
                 if field['standard_field']:
-                    self._default_get_fields.append(field['name'])
-                if field.get('supports_inline_funccall', False):
-                    self._default_post_fields.append(field['name'])
+                    self._standard_fields.append(field['name'])
                 self._fields.append(field['name'])
 
     @staticmethod
@@ -272,7 +268,7 @@ class Resource:
             self._validate_return_fields(return_fields_plus)
             # we don't want add fields which are already part of the default fields returned
             # this is the reason of the list comprehension
-            new_return_fields = [field for field in return_fields_plus if field not in self._default_get_fields]
+            new_return_fields = [field for field in return_fields_plus if field not in self._standard_fields]
             parameters['_return_fields+'] = ','.join(new_return_fields)
         return parameters
 
@@ -424,11 +420,15 @@ class Resource:
         To know the description of other parameters, refer to the methods _process_schedule_and_approval_info and get.
         """
         payload = {}
-        # we check if all mandatory fields are present
-        for field in self._default_post_fields:
-            if field not in kwargs:
-                raise MandatoryFieldError(
-                    f'{field} field is mandatory for {self._name} creation but is missing')
+        # we check if there is no standard field passed
+        standard_field_used = False
+        for field, value in kwargs.items():
+            if field in self._standard_fields:
+                standard_field_used = True
+                break
+        if not standard_field_used:
+            raise MandatoryFieldError(f'you have not provided any standard field for the {self._name} object.'
+                                      f' You probably forget to specify a mandatory field')
         # we check if field is known and supports write operation
         for field, value in kwargs.items():
             if field not in self._fields:

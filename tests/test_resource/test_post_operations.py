@@ -12,11 +12,12 @@ from infoblox.exceptions import MandatoryFieldError, BadParameterError, Function
 
 
 class TestCreate:
-    def test_method_raises_error_when_mandatory_field_is_missing(self, resource):
+    @pytest.mark.parametrize('fields', [{}, {'authority': True}])
+    def test_method_raises_error_when_no_standard_field_is_provided(self, resource, fields):
         with pytest.raises(MandatoryFieldError) as exc_info:
-            resource.create()
+            resource.create(**fields)
 
-        assert 'network field is mandatory for network creation but is missing' == str(exc_info.value)
+        assert 'you have not provided any standard field for the network object.' in str(exc_info.value)
 
     @pytest.mark.parametrize('field_parameters', [
         {'network': '192.168.1.0/24', 'foo': 'foo'},
