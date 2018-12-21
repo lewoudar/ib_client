@@ -1,4 +1,5 @@
 import click
+from click_didyoumean import DYMGroup
 
 # noinspection PyProtectedMember
 from infoblox import __version__, Client, Resource
@@ -10,7 +11,7 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
 
 @click.version_option(__version__)
-@click.group(context_settings=CONTEXT_SETTINGS)
+@click.group(context_settings=CONTEXT_SETTINGS, cls=DYMGroup)
 @click.pass_context
 def cli(context):
     """

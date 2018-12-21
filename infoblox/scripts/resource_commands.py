@@ -1,4 +1,5 @@
 import click
+from click_didyoumean import DYMGroup
 
 from infoblox.exceptions import ObjectNotFoundError, FieldNotFoundError, FunctionNotFoundError, HttpError, IBError
 from .options import (
@@ -9,7 +10,7 @@ from .options import (
 from .utils import pretty_echo
 
 
-@click.group('object')
+@click.group('object', cls=DYMGroup)
 @click.option('-n', '--name', 'wapi_object', nargs=1, prompt='wapi object',
               help='wapi object you want to interact with')
 @click.pass_obj
