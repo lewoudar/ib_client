@@ -12,7 +12,7 @@ from .utils import pretty_echo
 
 @click.group('object', cls=DYMGroup)
 @click.option('-n', '--name', 'wapi_object', nargs=1, prompt='wapi object',
-              help='wapi object you want to interact with')
+              help='Wapi object you want to interact with.')
 @click.pass_obj
 def resource(obj, wapi_object):
     """Performs various object operations."""
@@ -44,7 +44,7 @@ def functions(obj):
 
 
 @resource.command('field-info')
-@click.option('-n', '--name', prompt='field name', help='name of the field whose information is required')
+@click.option('-n', '--name', prompt='field name', help='Name of the field whose information is required.')
 @click.pass_obj
 def get_field_information(obj, name):
     """Gets object's field information."""
@@ -55,7 +55,7 @@ def get_field_information(obj, name):
 
 
 @resource.command('func-info')
-@click.option('-n', '--name', prompt='function name', help='name of the function whose information is required')
+@click.option('-n', '--name', prompt='function name', help='Name of the function whose information is required.')
 @click.pass_obj
 def get_function_information(obj, name):
     """Gets object's function information."""
@@ -67,7 +67,7 @@ def get_function_information(obj, name):
 
 @resource.command()
 # We don't use custom object_ref_option because object_ref is not required here (no prompt is necessary)
-@click.option('-o', '--object-ref', help='reference of the object to fetch')
+@click.option('-o', '--object-ref', help='Reference of the object to fetch.')
 @params_option
 @return_fields_option
 @return_fields_plus_option
@@ -101,7 +101,7 @@ def count(obj, params=None, proxy_search=None):
 
 @resource.command('func-call', short_help='Calls a function of an infoblox object.')
 @object_ref_option
-@click.option('-n', '--name', prompt='function name', help='name of the function to call')
+@click.option('-n', '--name', prompt='function name', help='Name of the function to call.')
 @arguments_option
 @click.pass_obj
 def function_call(obj, object_ref, name, arguments):

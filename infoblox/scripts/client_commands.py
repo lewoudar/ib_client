@@ -20,13 +20,13 @@ def api_schema(obj):
 
 @click.command('request')
 @click.option('-j', 'json_file', type=click.Path(exists=True), callback=handle_json_file, is_eager=True,
-              expose_value=False, help='json file which must contains the payload of the request')
+              expose_value=False, help='Json file which must contains the payload of the request')
 @click.argument('json_data', nargs=-1, required=True, callback=handle_json_arguments)
 @click.pass_obj
 def custom_request(obj, json_data):
     """
     Makes a custom request using the request object of infoblox api.
-    JSON_DATA: data which will be converted to dict and passed to Client.custom_request method.
+    JSON_DATA: data which will be converted to dict.
 
     \b
     Examples usage:
