@@ -48,8 +48,8 @@ class TestDotEnvFile:
 class TestSetSessionCredentials:
     # test method _set_session_credentials
     class CustomClient(Client):
-        def set_session_credentials(self, cert=None):
-            self._set_session_credentials(cert)
+        def set_session_credentials_and_certificate(self, cert=None):
+            self._set_session_credentials_and_certificate(cert)
 
         @property
         def session(self):
@@ -58,7 +58,7 @@ class TestSetSessionCredentials:
     def test_method_sets_verify_session_attribute_to_false_when_parameter_is_none(self, mocker):
         mocker.patch('infoblox.client.Client._load_schema')
         client = self.CustomClient('http://foo/wapi/v2.9')
-        client.set_session_credentials()
+        client.set_session_credentials_and_certificate()
 
         assert client.session.verify is False
 
@@ -66,7 +66,7 @@ class TestSetSessionCredentials:
     def test_method_raises_error_when_parameter_is_an_invalid_path(self, mocker, certificate):
         mocker.patch('infoblox.client.Client._load_schema')
         client = self.CustomClient('http://foo/wapi/v2.9')
-        client.set_session_credentials(certificate)
+        client.set_session_credentials_and_certificate(certificate)
 
         with pytest.raises(OSError):
             # we need to make a request to trigger the error
@@ -80,20 +80,29 @@ class TestSetSessionCredentials:
             with open(certificate_path, 'w') as stream:
                 stream.write('fake certificate')
 
-            client.set_session_credentials(certificate_path)
+            client.set_session_credentials_and_certificate(certificate_path)
             with pytest.raises(OSError):
                 client.session.get('https://foo.com')
 
-    def test_method_sets_user_and_password_information(self, mocker):
+    def test_method_sets_user_and_password_information_via_dot_env(self, mocker):
         mocker.patch('infoblox.client.Client._load_schema')
         with tempfile.TemporaryDirectory() as tempdir:
             env_file = os.path.join(tempdir, '.env')
+            user, password = 'foo', 'bar'
             with open(env_file, 'w') as stream:
-                stream.writelines(['IB_USER=foo\n', 'IB_PASSWORD=bar'])
+                stream.writelines([f'IB_USER={user}\n', f'IB_PASSWORD={password}'])
             client = self.CustomClient('http://foo/wapi/v2.9', dot_env_path=env_file)
-            client.set_session_credentials()
+            client.set_session_credentials_and_certificate()
 
-            assert ('foo', 'bar') == client.session.auth
+            assert (user, password) == client.session.auth
+
+    def test_method_sets_user_and_password_information_via_client_initialization(self, mocker):
+        mocker.patch('infoblox.client.Client._load_schema')
+        user, password = 'foo', 'bar'
+        client = self.CustomClient('http://foo/wapi/v2.9', user=user, password=password)
+        client.set_session_credentials_and_certificate()
+
+        assert (user, password) == client.session.auth
 
 
 class TestGetStartUrl:
@@ -206,7 +215,7 @@ class TestInit:
 
     def test_method_calls_mandatory_intern_methods(self, mocker):
         dot_env_mock = mocker.patch('infoblox.client.Client._check_dot_env_file_presence')
-        set_session_mock = mocker.patch('infoblox.client.Client._set_session_credentials')
+        set_session_mock = mocker.patch('infoblox.client.Client._set_session_credentials_and_certificate')
         start_url_mock = mocker.patch('infoblox.client.Client._get_start_url')
         load_schema_mock = mocker.patch('infoblox.client.Client._load_schema')
 

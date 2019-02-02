@@ -18,10 +18,13 @@ URL_PATH_REGEX = re.compile(r'/wapi/v\d\.\d+')
 
 class Client:
 
-    def __init__(self, wapi_url: str = None, cert: Union[str, Tuple[str, str]] = None, dot_env_path: str = None):
+    def __init__(self, wapi_url: str = None, cert: Union[str, Tuple[str, str]] = None, dot_env_path: str = None,
+                 user: str = None, password: str = None):
         self._check_dot_env_file_presence(dot_env_path)
+        self._user = user if user is not None else os.getenv('IB_USER')
+        self._password = password if password is not None else os.getenv('IB_PASSWORD')
         self._session = requests.Session()
-        self._set_session_credentials(cert)
+        self._set_session_credentials_and_certificate(cert)
         self._url: str = self._get_start_url(wapi_url)
         self._schema: Schema = None
         # we load the api schema
@@ -46,9 +49,9 @@ class Client:
             raise FileError(f'{dot_env_path} is not a valid path')
         load_dotenv(dotenv_path=dot_env_path)
 
-    def _set_session_credentials(self, cert: Union[str, Tuple[str, str]] = None) -> None:
+    def _set_session_credentials_and_certificate(self, cert: Union[str, Tuple[str, str]] = None) -> None:
         """
-        Set the client certificate or ignore verifying the client certificate
+        Set user credentials and the client certificate if specified.
         :param cert: It may be a single path to the client certificate or a a tuple (certificate, private key).
         For more information, see requests documentation
         http://docs.python-requests.org/en/master/user/advanced/#client-side-certificates
@@ -57,7 +60,7 @@ class Client:
             self._session.verify = False
         else:
             self._session.cert = cert
-        self._session.auth = (os.getenv('IB_USER'), os.getenv('IB_PASSWORD'))
+        self._session.auth = (self._user, self._password)
 
     @staticmethod
     def _get_start_url(url: str = None) -> str:
