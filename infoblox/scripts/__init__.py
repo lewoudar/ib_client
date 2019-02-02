@@ -1,4 +1,5 @@
 import click
+import click_completion
 from click_didyoumean import DYMGroup
 
 # noinspection PyProtectedMember
@@ -8,6 +9,7 @@ from infoblox.scripts.resource_commands import resource
 from infoblox.scripts.utils import check_environment
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
+click_completion.init()
 
 
 @click.version_option(__version__)
@@ -26,6 +28,21 @@ def cli(context):
             self.resource: Resource = None
 
     context.obj = Container()
+
+
+@cli.command('shell-completion')
+@click.option('--append/--overwrite', help="append the completion code to the file", default=None)
+@click.option('-i', 'case_insensitive', is_flag=True, default=False, help="case insensitive completion")
+@click.argument('shell', required=False, type=click_completion.DocumentedChoice(click_completion.core.shells))
+@click.argument('path', required=False)
+def completion(append, case_insensitive, shell, path):
+    """Installs shell completion."""
+    extra_env = {'_CLICK_COMPLETION_COMMAND_CASE_INSENSITIVE_COMPLETE': 'ON'} if case_insensitive else {}
+    try:
+        shell, path = click_completion.core.install(shell=shell, path=path, append=append, extra_env=extra_env)
+        click.secho(f'{shell} completion installed in {path}', fg='green')
+    except OSError as e:
+        raise click.ClickException(e)
 
 
 cli.add_command(api_schema)
