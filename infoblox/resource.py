@@ -1,12 +1,16 @@
+import os
 import re
 import time
 from typing import List, Dict, Any, Union, Iterator
 
 import requests
 
-from .exceptions import FieldNotFoundError, FunctionNotFoundError, BadParameterError, SearchOnlyFieldError, \
+from .exceptions import (
+    FieldNotFoundError, FunctionNotFoundError, BadParameterError, SearchOnlyFieldError,
     FieldError, IncompatibleOperationError, MandatoryFieldError, NotSearchableFieldError
+)
 from ._helpers import url_join, handle_http_error
+from ._settings import DEFAULT_CONNECT_TIMEOUT, DEFAULT_READ_TIMEOUT
 from .types import Schema
 
 
@@ -16,6 +20,8 @@ class Resource:
         self._url = wapi_url
         self._name = name
         self._session = session
+        self._timeout = (float(os.getenv('IB_REQUEST_CONNECT_TIMEOUT', DEFAULT_CONNECT_TIMEOUT)),
+                         float(os.getenv('IB_REQUEST_READ_TIMOUT', DEFAULT_READ_TIMEOUT)))
         self._schema: Schema = None
         self._load_schema()
         # fields we get by default when we fetch resource objects without changing
@@ -46,7 +52,7 @@ class Resource:
     def _load_schema(self) -> None:
         """Loads the model schema."""
         params = {'_schema': 1, '_schema_version': 2, '_get_doc': 1, '_schema_searchable': 1}
-        response = self._session.get(url_join(self._url, self._name), params=params)
+        response = self._session.get(url_join(self._url, self._name), params=params, timeout=self._timeout)
         handle_http_error(response)
         self._schema = response.json()
 
@@ -312,7 +318,7 @@ class Resource:
         else:
             url = url_join(self._url, self._name)
         parameters = self._process_get_parameters(object_ref, params, return_fields, return_fields_plus, proxy_search)
-        response = self._session.get(url, params=parameters)
+        response = self._session.get(url, params=parameters, timeout=self._timeout)
         handle_http_error(response)
         return response.json()
 
@@ -330,7 +336,7 @@ class Resource:
         next_page = True
 
         while next_page:
-            response = self._session.get(url_join(self._url, self._name), params=parameters)
+            response = self._session.get(url_join(self._url, self._name), params=parameters, timeout=self._timeout)
             handle_http_error(response)
             json_response = response.json()
             if 'next_page_id' in json_response:
@@ -449,7 +455,8 @@ class Resource:
         # we process return fields information
         parameters = {**parameters, **self._process_return_field_parameters(return_fields, return_fields_plus)}
 
-        response = self._session.post(url_join(self._url, self._name), params=parameters, json=payload)
+        response = self._session.post(url_join(self._url, self._name), params=parameters, json=payload,
+                                      timeout=self._timeout)
         handle_http_error(response)
         return response.json()
 
@@ -493,7 +500,8 @@ class Resource:
         # we process return fields information
         parameters = {**parameters, **self._process_return_field_parameters(return_fields, return_fields_plus)}
 
-        response = self._session.put(url_join(self._url, object_ref), params=parameters, json=payload)
+        response = self._session.put(url_join(self._url, object_ref), params=parameters, json=payload,
+                                     timeout=self._timeout)
         handle_http_error(response)
         return response.json()
 
@@ -513,7 +521,7 @@ class Resource:
                                                               approval_comment=approval_comment,
                                                               approval_query_mode=approval_query_mode,
                                                               approval_ticket_number=approval_ticket_number)
-        response = self._session.delete(url_join(self._url, object_ref), params=parameters)
+        response = self._session.delete(url_join(self._url, object_ref), params=parameters, timeout=self._timeout)
         handle_http_error(response)
         return response.json()
 
@@ -559,6 +567,7 @@ class Resource:
             payload[key] = value
 
         parameters = {'_function': function_name}
-        response = self._session.post(url_join(self._url, object_ref), params=parameters, json=payload)
+        response = self._session.post(url_join(self._url, object_ref), params=parameters, json=payload,
+                                      timeout=self._timeout)
         handle_http_error(response)
         return response.json()

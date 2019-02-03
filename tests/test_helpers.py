@@ -3,6 +3,7 @@ import json
 import pytest
 from requests import Response
 
+# noinspection PyProtectedMember
 from infoblox._helpers import url_join, handle_http_error
 from infoblox.exceptions import BadParameterError, HttpError
 

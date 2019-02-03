@@ -1,12 +1,15 @@
 import json
 import os
 import tempfile
+from unittest.mock import call
 
 import pytest
 
 from infoblox.client import Client
 from infoblox.exceptions import BadParameterError, FileError, IncompatibleApiError, HttpError, ObjectNotFoundError
 from infoblox.resource import Resource
+# noinspection PyProtectedMember
+from infoblox._settings import DEFAULT_BACKOFF_FACTOR, DEFAULT_MAX_RETRIES
 
 
 class TestDotEnvFile:
@@ -45,7 +48,36 @@ class TestDotEnvFile:
             assert 'mom' == os.getenv('BAR')
 
 
-class TestSetSessionCredentials:
+class TestConfigureRequestRetries:
+    # test method _configure_request_retries
+    @pytest.mark.parametrize('patch_environ', [True, False])
+    def test_retries_related_methods_are_called_properly(self, mocker, patch_environ):
+        mocker.patch('infoblox.client.Client._load_schema')
+        retry_mock = mocker.patch('infoblox.client.Retry')
+        retry_return_value = 2
+        retry_mock.return_value = retry_return_value
+        adapter_mock = mocker.patch('requests.adapters.HTTPAdapter')
+        adapter_return_value = 'adapter'
+        adapter_mock.return_value = adapter_return_value
+        session_mock = mocker.patch('infoblox.client.requests.Session')
+
+        if patch_environ:
+            max_retries, backoff_factor = '2', '0.1'
+            new_environ = {'IB_MAX_RETRIES': max_retries, 'IB_REQUEST_BACKOFF_FACTOR': backoff_factor}
+            mocker.patch.dict('os.environ', new_environ)
+        else:
+            max_retries, backoff_factor = DEFAULT_MAX_RETRIES, DEFAULT_BACKOFF_FACTOR
+        # we instantiate a client to call indirectly _configure_request_retries
+        Client('http://foo/wapi/v2.9')
+
+        retry_mock.assert_called_once_with(total=int(max_retries), backoff_factor=float(backoff_factor),
+                                           status_forcelist=[500, 502, 503, 504])
+        adapter_mock.assert_called_once_with(max_retries=retry_return_value)
+        assert call().mount('http://', adapter_return_value) in session_mock.mock_calls
+        assert call().mount('https://', adapter_return_value) in session_mock.mock_calls
+
+
+class TestSetSessionCredentialsAndCertificate:
     # test method _set_session_credentials
     class CustomClient(Client):
         def set_session_credentials_and_certificate(self, cert=None):
@@ -215,6 +247,7 @@ class TestInit:
 
     def test_method_calls_mandatory_intern_methods(self, mocker):
         dot_env_mock = mocker.patch('infoblox.client.Client._check_dot_env_file_presence')
+        retries_mock = mocker.patch('infoblox.client.Client._configure_request_retries')
         set_session_mock = mocker.patch('infoblox.client.Client._set_session_credentials_and_certificate')
         start_url_mock = mocker.patch('infoblox.client.Client._get_start_url')
         load_schema_mock = mocker.patch('infoblox.client.Client._load_schema')
@@ -222,6 +255,7 @@ class TestInit:
         Client('http://foo/wapi/v2.9', 'cert.pem', '.env')
 
         dot_env_mock.assert_called_once_with('.env')
+        retries_mock.assert_called_once()
         set_session_mock.assert_called_once_with('cert.pem')
         start_url_mock.assert_called_once_with('http://foo/wapi/v2.9')
         load_schema_mock.assert_called_once()

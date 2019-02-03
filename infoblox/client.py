@@ -6,9 +6,11 @@ from typing import Union, Tuple
 from urllib.parse import urlparse
 
 import requests
+from urllib3.util.retry import Retry
 from dotenv import load_dotenv
 
 from ._helpers import handle_http_error, url_join
+from ._settings import DEFAULT_CONNECT_TIMEOUT, DEFAULT_MAX_RETRIES, DEFAULT_READ_TIMEOUT, DEFAULT_BACKOFF_FACTOR
 from .exceptions import IncompatibleApiError, BadParameterError, ObjectNotFoundError, FileError
 from .resource import Resource
 from .types import Schema, Json
@@ -23,7 +25,10 @@ class Client:
         self._check_dot_env_file_presence(dot_env_path)
         self._user = user if user is not None else os.getenv('IB_USER')
         self._password = password if password is not None else os.getenv('IB_PASSWORD')
+        self._timeout = (float(os.getenv('IB_REQUEST_CONNECT_TIMEOUT', DEFAULT_CONNECT_TIMEOUT)),
+                         float(os.getenv('IB_REQUEST_READ_TIMOUT', DEFAULT_READ_TIMEOUT)))
         self._session = requests.Session()
+        self._configure_request_retries()
         self._set_session_credentials_and_certificate(cert)
         self._url: str = self._get_start_url(wapi_url)
         self._schema: Schema = None
@@ -48,6 +53,15 @@ class Client:
         if not os.path.isfile(dot_env_path):
             raise FileError(f'{dot_env_path} is not a valid path')
         load_dotenv(dotenv_path=dot_env_path)
+
+    def _configure_request_retries(self) -> None:
+        """Configure requests retries mechanism."""
+        max_retries = int(os.getenv('IB_MAX_RETRIES', DEFAULT_MAX_RETRIES))
+        backoff_factor = float(os.getenv('IB_REQUEST_BACKOFF_FACTOR', DEFAULT_BACKOFF_FACTOR))
+        retries = Retry(total=max_retries, backoff_factor=backoff_factor, status_forcelist=[500, 502, 503, 504])
+        adapter = requests.adapters.HTTPAdapter(max_retries=retries)
+        self._session.mount('http://', adapter)
+        self._session.mount('https://', adapter)
 
     def _set_session_credentials_and_certificate(self, cert: Union[str, Tuple[str, str]] = None) -> None:
         """
@@ -97,7 +111,7 @@ class Client:
         params = {'_schema': 1, '_schema_version': 2}
         # if we don't add a "/" at the end of the url, we will get a 400 status error
         url = self._url if self._url.endswith('/') else f'{self._url}/'
-        response = self._session.get(url, params=params)
+        response = self._session.get(url, params=params, timeout=self._timeout)
         handle_http_error(response)
         self._schema = response.json()
 
@@ -114,6 +128,6 @@ class Client:
         """
         if data is None:
             raise BadParameterError('data must not be empty')
-        response = self._session.post(url_join(self._url, 'request'), json=data)
+        response = self._session.post(url_join(self._url, 'request'), json=data, timeout=self._timeout)
         handle_http_error(response)
         return response.json()
