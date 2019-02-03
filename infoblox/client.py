@@ -20,7 +20,7 @@ URL_PATH_REGEX = re.compile(r'/wapi/v\d\.\d+')
 
 class Client:
 
-    def __init__(self, wapi_url: str = None, cert: Union[str, Tuple[str, str]] = None, dot_env_path: str = None,
+    def __init__(self, url: str = None, cert: Union[str, Tuple[str, str]] = None, dot_env_path: str = None,
                  user: str = None, password: str = None):
         self._handle_dot_env_file(dot_env_path)
         self._user = user if user is not None else os.getenv('IB_USER')
@@ -30,7 +30,7 @@ class Client:
         self._session = requests.Session()
         self._configure_request_retries()
         self._set_session_credentials_and_certificate(cert)
-        self._url: str = self._get_start_url(wapi_url)
+        self._url: str = self._get_start_url(url)
         self._schema: Schema = None
         # we load the api schema
         self._load_schema()

@@ -1,6 +1,7 @@
 import click
 import click_completion
 from click_didyoumean import DYMGroup
+from requests import ConnectionError
 
 # noinspection PyProtectedMember
 from infoblox import __version__, Client, Resource
@@ -12,6 +13,12 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 click_completion.init()
 
 
+class Container:
+    def __init__(self):
+        self.client = Client()
+        self.resource: Resource = None
+
+
 @click.version_option(__version__)
 @click.group(context_settings=CONTEXT_SETTINGS, cls=DYMGroup)
 @click.pass_context
@@ -21,13 +28,10 @@ def cli(context):
     you will do with the python api client.
     """
     check_environment()
-
-    class Container:
-        def __init__(self):
-            self.client = Client()
-            self.resource: Resource = None
-
-    context.obj = Container()
+    try:
+        context.obj = Container()
+    except ConnectionError:
+        raise click.ClickException('The remote server is unreachable')
 
 
 @cli.command('shell-completion')
