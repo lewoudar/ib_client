@@ -45,7 +45,7 @@ def completion(append, case_insensitive, shell, path):
     """Installs shell completion."""
     extra_env = {'_CLICK_COMPLETION_COMMAND_CASE_INSENSITIVE_COMPLETE': 'ON'} if case_insensitive else {}
     try:
-        shell, path = click_completion.core.install(shell=shell, path=path, append=append, extra_env=extra_env)
+        shell, path = click_completion.core.install(shell, path=path, append=append, extra_env=extra_env)
         click.secho(f'{shell} completion installed in {path}', fg='green')
     except OSError as e:
         raise click.ClickException(e)

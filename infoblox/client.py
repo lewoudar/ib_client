@@ -7,6 +7,7 @@ from urllib.parse import urlparse
 
 import requests
 from urllib3.util.retry import Retry
+# noinspection PyPackageRequirements
 from dotenv import load_dotenv
 
 from ._helpers import handle_http_error, url_join
