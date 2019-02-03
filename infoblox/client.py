@@ -56,7 +56,7 @@ class Client:
 
     def _configure_request_retries(self) -> None:
         """Configure requests retries mechanism."""
-        max_retries = int(os.getenv('IB_MAX_RETRIES', DEFAULT_MAX_RETRIES))
+        max_retries = int(os.getenv('IB_REQUEST_MAX_RETRIES', DEFAULT_MAX_RETRIES))
         backoff_factor = float(os.getenv('IB_REQUEST_BACKOFF_FACTOR', DEFAULT_BACKOFF_FACTOR))
         retries = Retry(total=max_retries, backoff_factor=backoff_factor, status_forcelist=[500, 502, 503, 504])
         adapter = requests.adapters.HTTPAdapter(max_retries=retries)

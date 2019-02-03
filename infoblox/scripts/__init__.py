@@ -32,6 +32,8 @@ def cli(context):
         context.obj = Container()
     except ConnectionError:
         raise click.ClickException('The remote server is unreachable')
+    except ValueError:
+        raise click.ClickException('You have probably mistaken value for an environment variable')
 
 
 @cli.command('shell-completion')

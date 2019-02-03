@@ -21,3 +21,12 @@ def test_cli_raises_error_when_requests_raises_connection_error(runner, mocker):
     result = runner.invoke(cli, ['objects'])
 
     assert_in_output(1, 'The remote server is unreachable', result)
+
+
+@pytest.mark.usefixtures('env_settings')
+@pytest.mark.parametrize('env_variable', ['IB_REQUEST_MAX_RETRIES', 'IB_REQUEST_CONNECT_TIMEOUT'])
+def test_cli_raises_error_when_env_variable_is_incorrect(runner, mocker, env_variable):
+    mocker.patch.dict('os.environ', {env_variable: 'foo'})
+    result = runner.invoke(cli, ['objects'])
+
+    assert_in_output(1, 'You have probably mistaken value for an environment variable', result)

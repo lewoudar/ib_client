@@ -63,7 +63,7 @@ class TestConfigureRequestRetries:
 
         if patch_environ:
             max_retries, backoff_factor = '2', '0.1'
-            new_environ = {'IB_MAX_RETRIES': max_retries, 'IB_REQUEST_BACKOFF_FACTOR': backoff_factor}
+            new_environ = {'IB_REQUEST_MAX_RETRIES': max_retries, 'IB_REQUEST_BACKOFF_FACTOR': backoff_factor}
             mocker.patch.dict('os.environ', new_environ)
         else:
             max_retries, backoff_factor = DEFAULT_MAX_RETRIES, DEFAULT_BACKOFF_FACTOR
