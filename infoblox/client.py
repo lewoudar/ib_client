@@ -22,7 +22,7 @@ class Client:
 
     def __init__(self, wapi_url: str = None, cert: Union[str, Tuple[str, str]] = None, dot_env_path: str = None,
                  user: str = None, password: str = None):
-        self._check_dot_env_file_presence(dot_env_path)
+        self._handle_dot_env_file(dot_env_path)
         self._user = user if user is not None else os.getenv('IB_USER')
         self._password = password if password is not None else os.getenv('IB_PASSWORD')
         self._timeout = (float(os.getenv('IB_REQUEST_CONNECT_TIMEOUT', DEFAULT_CONNECT_TIMEOUT)),
@@ -44,7 +44,7 @@ class Client:
         return self._schema['supported_objects']
 
     @staticmethod
-    def _check_dot_env_file_presence(dot_env_path: str = None) -> None:
+    def _handle_dot_env_file(dot_env_path: str = None) -> None:
         """Checks .env file presence and loads it."""
         if dot_env_path is None:
             return

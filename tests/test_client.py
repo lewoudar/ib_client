@@ -16,23 +16,23 @@ class TestDotEnvFile:
     # test method _check_dot_env_file_presence
     class Client(Client):
         @staticmethod
-        def check_dot_env_file_presence(env_path=None):
-            return Client._check_dot_env_file_presence(env_path)
+        def handle_dot_env_file(env_path=None):
+            return Client._handle_dot_env_file(env_path)
 
     def test_method_returns_none_when_parameter_is_none(self):
-        assert self.Client.check_dot_env_file_presence() is None
+        assert self.Client.handle_dot_env_file() is None
 
     @pytest.mark.parametrize('env_path', [4, 4.0])
     def test_method_raises_error_when_parameter_is_not_a_string(self, env_path):
         with pytest.raises(BadParameterError) as exc_info:
-            self.Client.check_dot_env_file_presence(env_path)
+            self.Client.handle_dot_env_file(env_path)
 
         assert 'dot_env_path must be a string' == str(exc_info.value)
 
     @pytest.mark.parametrize('env_path', ['foo', 'bar'])
     def test_method_raises_error_when_parameter_is_not_a_valid_path(self, env_path):
         with pytest.raises(FileError) as exc_info:
-            self.Client.check_dot_env_file_presence(env_path)
+            self.Client.handle_dot_env_file(env_path)
 
         assert f'{env_path} is not a valid path' == str(exc_info.value)
 
@@ -42,7 +42,7 @@ class TestDotEnvFile:
             with open(env_path, 'w') as stream:
                 stream.writelines(['FOO=dad\n', 'BAR=mom'])
 
-            self.Client.check_dot_env_file_presence(env_path)
+            self.Client.handle_dot_env_file(env_path)
 
             assert 'dad' == os.getenv('FOO')
             assert 'mom' == os.getenv('BAR')
@@ -246,7 +246,7 @@ class TestInit:
     # test __init__ method
 
     def test_method_calls_mandatory_intern_methods(self, mocker):
-        dot_env_mock = mocker.patch('infoblox.client.Client._check_dot_env_file_presence')
+        dot_env_mock = mocker.patch('infoblox.client.Client._handle_dot_env_file')
         retries_mock = mocker.patch('infoblox.client.Client._configure_request_retries')
         set_session_mock = mocker.patch('infoblox.client.Client._set_session_credentials_and_certificate')
         start_url_mock = mocker.patch('infoblox.client.Client._get_start_url')
