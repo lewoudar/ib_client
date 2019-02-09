@@ -42,7 +42,7 @@ def cli(context):
 @click.argument('shell', required=False, type=click_completion.DocumentedChoice(click_completion.core.shells))
 @click.argument('path', required=False)
 def completion(append, case_insensitive, shell, path):
-    """Installs shell completion."""
+    """Installs shell completion. Supported shells are bash, fish, zsh and PowerShell."""
     extra_env = {'_CLICK_COMPLETION_COMMAND_CASE_INSENSITIVE_COMPLETE': 'ON'} if case_insensitive else {}
     try:
         shell, path = click_completion.core.install(shell, path=path, append=append, extra_env=extra_env)

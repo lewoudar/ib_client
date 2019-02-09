@@ -11,12 +11,12 @@ params_option = click.option('-p', '--params', help='Query parameters used to fi
 arguments_option = click.option('-a', '--arguments', prompt='arguments', type=DICT,
                                 help='Arguments to pass to the function / command in json format.')
 
-return_fields_option = click.option('--return-fields', help='Comma-separated list of returned fields.',
+return_fields_option = click.option('--return-fields', help='Comma-separated list of fields to be returned.',
                                     type=STRING_LIST)
 
 return_fields_plus_option = click.option('--return-fields-plus', type=STRING_LIST,
-                                         help='Comma-separated list of fields returned in addition of the basic fields'
-                                              ' of the object.')
+                                         help='Comma-separated list of fields to be returned in addition of the basic'
+                                              ' fields of the object.')
 
 proxy_search_option = click.option('--proxy-search', type=click.Choice(['GM', 'LOCAL']), default='LOCAL',
                                    help='Processes requests on grid master or locally.')
