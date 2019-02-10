@@ -1,5 +1,6 @@
 import json
 import os
+import tempfile
 
 import click
 import pytest
@@ -7,7 +8,7 @@ import pytest
 # noinspection PyProtectedMember
 from infoblox.scripts.utils import (
     pretty_echo, _get_delimiter, _parse_item, parse_dict_items, handle_json_file, handle_json_arguments,
-    check_environment
+    check_environment, handle_dot_env_file
 )
 
 
@@ -251,3 +252,28 @@ class TestCheckEnvironment:
             check_environment()
         except click.UsageError:
             pytest.fail('check_environment fails with env variables set')
+
+
+class TestHandleDotEnvFile:
+
+    def test_function_loads_env_variables_when_dot_env_file_exists(self):
+        with tempfile.TemporaryDirectory() as tempdir:
+            env_path = os.path.join(tempdir, '.env')
+            dad, mom = 'dad', 'mom'
+
+            with open(env_path, 'w') as stream:
+                stream.writelines([f'FATHER={dad}\n', f'MOTHER={mom}'])
+
+            handle_dot_env_file(dot_env_file=env_path)
+
+            assert os.getenv('FATHER') == dad
+            assert os.getenv('MOTHER') == mom
+
+    def test_function_raises_error_when_load_dotenv_raises_error(self, mocker):
+        is_file_mock = mocker.patch('os.path.isfile')
+        is_file_mock.return_value = True
+        load_dotenv_mock = mocker.patch('dotenv.load_dotenv')
+        load_dotenv_mock.side_effect = KeyError
+
+        with pytest.raises(click.FileError):
+            handle_dot_env_file()

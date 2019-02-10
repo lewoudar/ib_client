@@ -7,7 +7,7 @@ from requests import ConnectionError
 from infoblox import __version__, Client, Resource
 from infoblox.scripts.client_commands import api_schema, available_objects, custom_request
 from infoblox.scripts.resource_commands import resource
-from infoblox.scripts.utils import check_environment
+from infoblox.scripts.utils import check_environment, handle_dot_env_file
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 click_completion.init()
@@ -27,6 +27,7 @@ def cli(context):
     Infoblox Command Line Interface. It allows you to interact with infoblox in the same way
     you will do with the python api client.
     """
+    handle_dot_env_file()
     check_environment()
     try:
         context.obj = Container()

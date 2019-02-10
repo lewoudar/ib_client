@@ -6,6 +6,7 @@ import click
 from pygments.formatters import get_formatter_by_name
 from pygments.lexers import get_lexer_by_name
 from pygments import highlight
+from dotenv import load_dotenv
 
 from infoblox.exceptions import HttpError
 
@@ -112,3 +113,15 @@ def check_environment() -> None:
     for item in ['IB_USER', 'IB_PASSWORD', 'IB_URL']:
         if os.getenv(item) is None:
             raise click.UsageError(f'{item} environment variable must be set before using ib.')
+
+
+def handle_dot_env_file(dot_env_file='.env') -> None:
+    """
+    Checks .env file presence in the current directory and loads it.
+    :param dot_env_file: .env file path.
+    """
+    if os.path.isfile(dot_env_file):
+        try:
+            load_dotenv(dotenv_path=dot_env_file)
+        except Exception:
+            raise click.FileError('There was an error when processing the .env file, please check it out.')
