@@ -74,7 +74,7 @@ def get_function_information(obj, name):
 @proxy_search_option
 @click.pass_obj
 def get(obj, object_ref=None, params=None, return_fields=None, return_fields_plus=None, proxy_search=None):
-    """Performs HTTP GET operations to search and reach objects."""
+    """Performs HTTP GET operations to search objects."""
     try:
         pretty_echo(obj.resource.get(object_ref, params, return_fields, return_fields_plus, proxy_search))
     except HttpError as e:
