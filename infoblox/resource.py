@@ -382,6 +382,7 @@ class Resource:
                 raise BadParameterError(f'schedule_time must be a positive integer representing a FUTURE TIME '
                                         f'but you provide {schedule_time}')
             parameters['_schedinfo.scheduled_time'] = schedule_time
+
         if schedule_now:
             if schedule_time is not None:
                 raise IncompatibleOperationError('you cannot use _schedinfo.scheduled_time and _schedinfo.schedule_now'
@@ -389,30 +390,36 @@ class Resource:
             if not isinstance(schedule_now, bool):
                 raise BadParameterError(f'schedule_now must be a boolean but you provide {schedule_now}')
             parameters['_schedinfo.schedule_now'] = 1 if schedule_now else 0
+
         if schedule_predecessor_task is not None:
             if not isinstance(schedule_predecessor_task, str):
                 raise BadParameterError(f'schedule_predecessor_task must be a string but you provide'
                                         f' {schedule_predecessor_task}')
             parameters['_schedinfo.predecessor_task'] = schedule_predecessor_task
+
         if schedule_warn_level is not None:
             if not isinstance(schedule_warn_level, str) or schedule_warn_level.upper() not in ['WARN', 'NONE']:
                 raise BadParameterError(f'schedule_warn_level must be either WARN or NONE but you provide'
                                         f' {schedule_warn_level}')
             parameters['_schedinfo.warnlevel'] = schedule_warn_level.upper()
+
         if approval_comment is not None:
             if not isinstance(approval_comment, str):
                 raise BadParameterError(f'approval_comment must be a string but you provide {approval_comment}')
             parameters['_approvalinfo.comment'] = approval_comment
+
         if approval_query_mode is not None:
             if not isinstance(approval_query_mode, str) or approval_query_mode.lower() not in ['true', 'false']:
                 raise BadParameterError(f'approval_query_mode must be either true or false but you provide'
                                         f' {approval_query_mode}')
             parameters['_approvalinfo.query_mode'] = approval_query_mode.lower()
+
         if approval_ticket_number is not None:
             if not isinstance(approval_ticket_number, int):
                 raise BadParameterError(f'approval_ticket_number must be an integer but you provide'
                                         f' {approval_ticket_number}')
             parameters['_approvalinfo.ticket_number'] = approval_ticket_number
+
         return parameters
 
     def create(self, schedule_time: int = None, schedule_now: bool = False, schedule_predecessor_task: str = None,
@@ -435,6 +442,7 @@ class Resource:
         if not standard_field_used:
             raise MandatoryFieldError(f'you have not provided any standard field for the {self._name} object.'
                                       f' You probably forget to specify a mandatory field')
+
         # we check if field is known and supports write operation
         for field, value in kwargs.items():
             if field not in self._fields:
@@ -445,6 +453,7 @@ class Resource:
                                  f'field are: {field_info["supports"]}')
             self._check_field_value(field, value, field_info)
             payload[field] = value
+
         # we process schedule and approval information
         parameters = self._process_schedule_and_approval_info(schedule_time=schedule_time, schedule_now=schedule_now,
                                                               schedule_predecessor_task=schedule_predecessor_task,
@@ -490,6 +499,7 @@ class Resource:
                                  f' field are: {field_info["supports"]}')
             self._check_field_value(key, value, field_info)
             payload[key] = value
+
         # we process schedule and approval information
         parameters = self._process_schedule_and_approval_info(schedule_time=schedule_time, schedule_now=schedule_now,
                                                               schedule_predecessor_task=schedule_predecessor_task,
@@ -497,6 +507,7 @@ class Resource:
                                                               approval_comment=approval_comment,
                                                               approval_query_mode=approval_query_mode,
                                                               approval_ticket_number=approval_ticket_number)
+
         # we process return fields information
         parameters = {**parameters, **self._process_return_field_parameters(return_fields, return_fields_plus)}
 
