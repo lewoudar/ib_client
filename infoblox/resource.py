@@ -547,7 +547,13 @@ class Resource:
         :param kwargs: function input parameters.
         """
         # object_ref validation
-        self._check_object_reference(object_ref)
+        if object_ref is None:
+            path = self._name
+        else:
+            if not isinstance(object_ref, str):
+                raise BadParameterError(f'object_ref must be a string but you provide {object_ref}')
+            path = object_ref
+
         # function_name validation
         if function_name is None:
             raise MandatoryFieldError('function_name is missing')
@@ -567,7 +573,7 @@ class Resource:
             payload[key] = value
 
         parameters = {'_function': function_name}
-        response = self._session.post(url_join(self._url, object_ref), params=parameters, json=payload,
+        response = self._session.post(url_join(self._url, path), params=parameters, json=payload,
                                       timeout=self._timeout)
         handle_http_error(response)
         return response.json()

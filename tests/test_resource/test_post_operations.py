@@ -3,12 +3,10 @@ import json
 from urllib.parse import urlparse, parse_qsl
 
 import pytest
+from requests import Session
 
 from infoblox.exceptions import MandatoryFieldError, BadParameterError, FunctionNotFoundError, \
     FieldError, HttpError, FieldNotFoundError
-
-
-# To know which methods are tests, remove Test from class names and put it in lower case.
 
 
 class TestCreate:
@@ -124,7 +122,6 @@ def test_get_field_info_from_function_info_returns_correct_data(resource, field_
 
 class TestFuncCall:
     @pytest.mark.parametrize(('parameters', 'error_message'), [
-        ({}, 'object_ref is missing'),
         ({'object_ref': 'my-ref'}, 'function_name is missing')
     ])
     def test_method_raises_error_when_mandatory_fields_are_missing(self, resource, parameters, error_message):
@@ -179,7 +176,7 @@ class TestFuncCall:
         with pytest.raises(HttpError):
             resource.func_call(object_ref=object_ref, function_name='next_available_ip', num=3)
 
-    def test_method_is_executed_correctly_and_returns_correct_data(self, responses, url, resource):
+    def test_method_is_executed_correctly_with_object_ref_and_returns_correct_data(self, responses, url, resource):
         object_ref = 'ref'
         function_name = 'next_available_ip'
         payload = {'num': 1}
@@ -198,3 +195,24 @@ class TestFuncCall:
                                content_type='application/json')
 
         assert expected_response == resource.func_call(object_ref, function_name, **payload)
+
+    def test_method_is_executed_correctly_without_object_ref_and_returns_correct_data(self, responses, url,
+                                                                                      fileop_resource):
+        resource_name = 'fileop'
+        payload = {'filename': 'foo.txt'}
+        function_name = 'uploadinit'
+        expected_response = {'token': 'my-token', 'url': 'http://blabla.com'}
+
+        def request_callback(request):
+            url_parts = urlparse(request.url)
+            query_dict = dict(parse_qsl(url_parts.query))
+            assert payload == json.loads(request.body)
+            assert '_function' in query_dict
+            assert query_dict['_function'] == function_name
+
+            return 200, {}, json.dumps(expected_response)
+
+        responses.add_callback(responses.POST, f'{url}/{resource_name}', callback=request_callback,
+                               content_type='application/json')
+
+        assert expected_response == fileop_resource.func_call(function_name=function_name, **payload)

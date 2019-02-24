@@ -15,7 +15,7 @@ def api_schema():
         "requested_version": "2.9",
         "supported_objects": ["ipv4address", "ipv6address", "ipv6network",
                               "ipv6networkcontainer", "ipv6range",
-                              "macfilteraddress", "network"],
+                              "macfilteraddress", "network", "fileop"],
         "supported_versions": ["1.0", "1.1", "1.2", "1.2.1", '2.0'],
         "schema_version": "2.0",
     }
@@ -383,6 +383,76 @@ def network_schema():
     }
 
 
+@pytest.fixture(scope='session')
+def fileop_schema():
+    return {
+        'fields': [
+            {
+                "doc": "his function is used to begin an upload operation",
+                "is_array": False,
+                "name": "uploadinit",
+                "schema": {
+                    "input_fields": [
+                        {
+                            "doc": "This is an optional parameter governing the name of the file that"
+                                   " is being uploaded to the appliance. Default value is 'import_file'",
+                            "is_array": False,
+                            "name": "filename",
+                            "supports": "w",
+                            "type": [
+                                "string"
+                            ]
+                        }
+                    ],
+                    "output_fields": [
+                        {
+                            "doc": "The token used for calling the upload function.",
+                            "is_array": False,
+                            "name": "token",
+                            "supports": "r",
+                            "type": [
+                                "string"
+                            ]
+                        },
+                        {
+                            "doc": "The URL to which the file is being uploaded.",
+                            "is_array": False,
+                            "name": "url",
+                            "supports": "r",
+                            "type": [
+                                "string"
+                            ]
+                        }
+                    ]
+                },
+                "standard_field": False,
+                "supports": "rwu",
+                "type": [
+                    "uploadinit"
+                ],
+                "wapi_primitive": "funccall"
+            }
+        ],
+        "restrictions": [],
+        "schema_version": "2",
+        "type": "network",
+        "version": "2.9",
+        "wapi_primitive": "object"
+    }
+
+
+@pytest.fixture(scope='session')
+def test_session():
+    return requests.Session()
+
+
+@pytest.fixture
+def fileop_resource(responses, url, fileop_schema, test_session):
+    resource_name = 'fileop'
+    responses.add(responses.GET, f'{url}/{resource_name}', json=fileop_schema, status=200)
+    return Resource(test_session, url, resource_name)
+
+
 # this is done to avoid using directly protected methods and raises Pycharm errors
 class MyResource(Resource):
     def get_field_support_information(self, support_string):
@@ -431,10 +501,10 @@ def resource_name():
 
 
 @pytest.fixture
-def resource(responses, url, resource_name, network_schema):
+def resource(responses, url, resource_name, network_schema, test_session):
     """Network resource for test purposes."""
     responses.add(responses.GET, f'{url}/{resource_name}', json=network_schema, status=200)
-    return MyResource(requests.Session(), url, resource_name)
+    return MyResource(test_session, url, resource_name)
 
 
 @pytest.fixture(scope='session')

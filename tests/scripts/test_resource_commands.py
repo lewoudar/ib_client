@@ -165,7 +165,7 @@ class TestFunctionCallCommand:
         ['-n', 'next_available_ip', '-a', '{"num":1}'],
         ['--name', 'next_available_ip', '--arguments', '{"num":1}']
     ])
-    def test_command_prints_correct_output(self, runner, responses, url, resource_name, options):
+    def test_command_prints_correct_output_with_object_ref(self, runner, responses, url, resource_name, options):
         object_ref = 'foo'
         expected_response = {'ips': ['192.168.1.1']}
 
@@ -177,6 +177,23 @@ class TestFunctionCallCommand:
         result = runner.invoke(cli, ['object', '-n', resource_name, 'func-call', '-o', object_ref] + options)
 
         assert_list_items(0, ['ips', '192.168.1.1'], result)
+
+    @pytest.mark.usefixtures('fileop_resource')
+    def test_command_prints_correct_output_without_object_ref(self, runner, responses, url):
+        expected_response = {'token': 'my-token', 'url': 'http://foobar.com'}
+        resource_name = 'fileop'
+
+        def request_callback(*_):
+            return 200, {}, json.dumps(expected_response)
+
+        # since the resource fixture is called on every test, we need to perform the next action to prevent
+        # having an api call not detected by responses utility.
+        responses.remove(responses.GET, f'{url}/network')
+        responses.add_callback(responses.POST, f'{url}/{resource_name}', callback=request_callback,
+                               content_type='application/json')
+        result = runner.invoke(cli, ['object', '-n', resource_name, 'func-call', '-n', 'uploadinit', '-a', '{}'])
+
+        assert_list_items(0, ['token', 'my-token', 'url', 'http://foobar.com'], result)
 
     def test_command_prints_error_if_response_status_code_greater_or_equal_than_400(self, runner, responses, url,
                                                                                     resource_name):

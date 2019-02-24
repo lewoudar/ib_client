@@ -100,7 +100,8 @@ def count(obj, params=None, proxy_search=None):
 
 
 @resource.command('func-call', short_help='Calls a function of an infoblox object.')
-@object_ref_option
+# We don't use custom object_ref_option because object_ref is not required here (no prompt is necessary)
+@click.option('-o', '--object-ref', help='Reference of the object to fetch.', default=None)
 @click.option('-n', '--name', prompt='function name', help='Name of the function to call.')
 @arguments_option
 @click.pass_obj
