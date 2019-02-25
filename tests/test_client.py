@@ -12,40 +12,36 @@ from infoblox.resource import Resource
 from infoblox._settings import DEFAULT_BACKOFF_FACTOR, DEFAULT_MAX_RETRIES
 
 
+# noinspection PyTypeChecker
 class TestDotEnvFile:
     # test method _check_dot_env_file_presence
-    class Client(Client):
-        @staticmethod
-        def handle_dot_env_file(env_path=None):
-            return Client._handle_dot_env_file(env_path)
 
     def test_method_returns_none_when_parameter_is_none(self):
-        assert self.Client.handle_dot_env_file() is None
+        assert Client._handle_dot_env_file() is None
 
     @pytest.mark.parametrize('env_path', [4, 4.0])
     def test_method_raises_error_when_parameter_is_not_a_string(self, env_path):
         with pytest.raises(BadParameterError) as exc_info:
-            self.Client.handle_dot_env_file(env_path)
+            Client._handle_dot_env_file(env_path)
 
         assert 'dot_env_path must be a string' == str(exc_info.value)
 
     @pytest.mark.parametrize('env_path', ['foo', 'bar'])
     def test_method_raises_error_when_parameter_is_not_a_valid_path(self, env_path):
         with pytest.raises(FileError) as exc_info:
-            self.Client.handle_dot_env_file(env_path)
+            Client._handle_dot_env_file(env_path)
 
         assert f'{env_path} is not a valid path' == str(exc_info.value)
 
-    def test_method_sets_correctly_environment_variables_from_env_file(self):
-        with tempfile.TemporaryDirectory() as tempdir:
-            env_path = os.path.join(tempdir, '.env')
-            with open(env_path, 'w') as stream:
-                stream.writelines(['FOO=dad\n', 'BAR=mom'])
+    def test_method_sets_correctly_environment_variables_from_env_file(self, tempdir):
+        env_path = os.path.join(tempdir, '.env')
+        with open(env_path, 'w') as stream:
+            stream.writelines(['FOO=dad\n', 'BAR=mom'])
 
-            self.Client.handle_dot_env_file(env_path)
+        Client._handle_dot_env_file(env_path)
 
-            assert 'dad' == os.getenv('FOO')
-            assert 'mom' == os.getenv('BAR')
+        assert 'dad' == os.getenv('FOO')
+        assert 'mom' == os.getenv('BAR')
 
 
 class TestConfigureRequestRetries:
@@ -79,42 +75,34 @@ class TestConfigureRequestRetries:
 
 class TestSetSessionCredentialsAndCertificate:
     # test method _set_session_credentials
-    class CustomClient(Client):
-        def set_session_credentials_and_certificate(self, cert=None):
-            self._set_session_credentials_and_certificate(cert)
-
-        @property
-        def session(self):
-            return self._session
 
     def test_method_sets_verify_session_attribute_to_false_when_parameter_is_none(self, mocker):
         mocker.patch('infoblox.client.Client._load_schema')
-        client = self.CustomClient('http://foo/wapi/v2.9')
-        client.set_session_credentials_and_certificate()
+        client = Client('http://foo/wapi/v2.9')
+        client._set_session_credentials_and_certificate()
 
         assert client.session.verify is False
 
     @pytest.mark.parametrize('certificate', ['foo', ('foo', 'foo')])
     def test_method_raises_error_when_parameter_is_an_invalid_path(self, mocker, certificate):
         mocker.patch('infoblox.client.Client._load_schema')
-        client = self.CustomClient('http://foo/wapi/v2.9')
-        client.set_session_credentials_and_certificate(certificate)
+        client = Client('http://foo/wapi/v2.9')
+        client._set_session_credentials_and_certificate(certificate)
 
         with pytest.raises(OSError):
             # we need to make a request to trigger the error
             client.session.get('https://foo.com')
 
-    def test_method_raises_error_when_certificate_is_not_correct(self, mocker):
+    def test_method_raises_error_when_certificate_is_not_correct(self, mocker, tempdir):
         mocker.patch('infoblox.client.Client._load_schema')
-        client = self.CustomClient('http://foo/wapi/v2.9')
-        with tempfile.TemporaryDirectory() as tempdir:
-            certificate_path = os.path.join(tempdir, 'cert.pem')
-            with open(certificate_path, 'w') as stream:
-                stream.write('fake certificate')
+        client = Client('http://foo/wapi/v2.9')
+        certificate_path = os.path.join(tempdir, 'cert.pem')
+        with open(certificate_path, 'w') as stream:
+            stream.write('fake certificate')
 
-            client.set_session_credentials_and_certificate(certificate_path)
-            with pytest.raises(OSError):
-                client.session.get('https://foo.com')
+        client._set_session_credentials_and_certificate(certificate_path)
+        with pytest.raises(OSError):
+            client.session.get('https://foo.com')
 
     def test_method_sets_user_and_password_information_via_dot_env(self, mocker):
         mocker.patch('infoblox.client.Client._load_schema')
@@ -123,44 +111,40 @@ class TestSetSessionCredentialsAndCertificate:
             user, password = 'foo', 'bar'
             with open(env_file, 'w') as stream:
                 stream.writelines([f'IB_USER={user}\n', f'IB_PASSWORD={password}'])
-            client = self.CustomClient('http://foo/wapi/v2.9', dot_env_path=env_file)
-            client.set_session_credentials_and_certificate()
+            client = Client('http://foo/wapi/v2.9', dot_env_path=env_file)
+            client._set_session_credentials_and_certificate()
 
             assert (user, password) == client.session.auth
 
     def test_method_sets_user_and_password_information_via_client_initialization(self, mocker):
         mocker.patch('infoblox.client.Client._load_schema')
         user, password = 'foo', 'bar'
-        client = self.CustomClient('http://foo/wapi/v2.9', user=user, password=password)
-        client.set_session_credentials_and_certificate()
+        client = Client('http://foo/wapi/v2.9', user=user, password=password)
+        client._set_session_credentials_and_certificate()
 
         assert (user, password) == client.session.auth
 
 
 class TestGetStartUrl:
     # test method _get_start_url
-    class Client(Client):
-        @staticmethod
-        def get_start_url(url=None):
-            return Client._get_start_url(url)
 
     def test_method_raises_error_when_parameter_is_missing(self):
         with pytest.raises(BadParameterError) as exc_info:
-            self.Client.get_start_url()
+            Client._get_start_url()
 
         assert 'you must provide url either by passing wapi_url' in str(exc_info.value)
 
     @pytest.mark.parametrize('url', [4, 4.0])
     def test_method_raises_error_when_parameter_is_not_a_string(self, url):
         with pytest.raises(BadParameterError) as exc_info:
-            self.Client.get_start_url(url)
+            Client._get_start_url(url)
 
         assert f'{url} is not a valid http url' == str(exc_info.value)
 
     @pytest.mark.parametrize('url', ['foo', 'ftp://user:pass@foo.com'])
     def test_method_raises_error_when_url_scheme_is_not_http(self, url):
         with pytest.raises(BadParameterError) as exc_info:
-            self.Client.get_start_url(url)
+            Client._get_start_url(url)
 
         assert f'{url} is not a valid http url' == str(exc_info.value)
 
@@ -172,7 +156,7 @@ class TestGetStartUrl:
     ])
     def test_method_raises_error_when_url_does_not_contains_wapi_prefix(self, url):
         with pytest.raises(BadParameterError) as exc_info:
-            self.Client.get_start_url(url)
+            Client._get_start_url(url)
 
         assert 'the url must be in the form http://host/wapi/vX.X' in str(exc_info.value)
 
@@ -181,25 +165,21 @@ class TestGetStartUrl:
         ('https://localhost/wapi/v5.4/', 'https://localhost/wapi/v5.4/')
     ])
     def test_method_returns_start_url_when_parameter_is_correct(self, given_url, expected_url):
-        assert expected_url == self.Client.get_start_url(given_url)
+        assert expected_url == Client._get_start_url(given_url)
 
 
 class TestCheckApiVersion:
     # tests method _check_api_version
-    class Client(Client):
-        @staticmethod
-        def check_api_version(url):
-            Client._check_api_version(url)
 
     @pytest.mark.parametrize('url', ['http://foo/wapi/v1.0', 'https://foo/wapi/v0.3/'])
     def test_method_raises_error_if_wapi_version_is_incompatible(self, url):
         with pytest.raises(IncompatibleApiError):
-            self.Client.check_api_version(url)
+            Client._check_api_version(url)
 
     @pytest.mark.parametrize('url', ['http://foo/wapi/v3.2', 'https://foo/wapi/v4.0/'])
     def test_method_raises_warning_if_wapi_version_is_greater_than_2(self, mocker, url):
         warn_mock = mocker.patch('warnings.warn')
-        self.Client.check_api_version(url)
+        Client._check_api_version(url)
 
         warn_mock.assert_called_once()
 
@@ -208,7 +188,7 @@ class TestCheckApiVersion:
         warn_mock = mocker.patch('warnings.warn')
 
         try:
-            self.Client.check_api_version(url)
+            Client._check_api_version(url)
         except IncompatibleApiError:
             pytest.fail(f'method _check_api_version raises an error with url: {url}')
 

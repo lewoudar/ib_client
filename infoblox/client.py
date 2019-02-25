@@ -44,6 +44,10 @@ class Client:
     def available_objects(self) -> List[str]:
         return self._schema['supported_objects']
 
+    @property
+    def session(self):
+        return self._session
+
     @staticmethod
     def _handle_dot_env_file(dot_env_path: str = None) -> None:
         """Checks .env file presence and loads it."""
