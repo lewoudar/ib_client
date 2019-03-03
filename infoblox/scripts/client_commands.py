@@ -30,8 +30,13 @@ def custom_request(obj, json_data):
 
     \b
     Examples usage:
-    ib request '{"data": {"name": "test.somewhere.com"}, "method": "GET", "object": "record:host"}'
-    ib request data:='{"name": "test.somewhere.com"}' method=GET object:='"record:host"'
+    ib request '{"data":{"name":"test.somewhere.com"},"method":"GET","object":"record:host"}'
+
+    \b
+    # the next example is only true if your payload consists of a single json object, not an array
+    ib request data:='{"name":"test.somewhere.com"}' method=GET object:='"record:host"'
+
+    \b
     ib request -j foo.json  # where foo.json is the file containing the payload in json format.
     """
     try:
