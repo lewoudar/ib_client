@@ -4,8 +4,9 @@ This may be the first question that come to your mind if you know that there is 
 a [client](https://infoblox-client.readthedocs.io/en/stable/) supported by Infoblox.
  
 The answer is **genericity**. I try to be the more generic as possible to support all the objects proposed by the 
-infoblox API through the instropection of its API. If you know the documentation of an object / function, you will
-know how to use through the client which has a simple and intuitive API.
+infoblox API through the instropection of its API. If you know the [wapi](https://ipam.illinois.edu/wapidoc)
+documentation of an object / function, you will know how to use through the client which has a *simple* and
+*intuitive* API.
 
 # Installation
 
@@ -22,8 +23,11 @@ The documentation is available at [https://docs.ib-client.org/en/stable](https:/
 # Features
 
 - A client that allows you to perform all the operations available in the infoblox api.
-
 - A CLI that allows you to quickly perform the same operations as you will do with the client.
+- Ability to perform custom 
+[requests](https://ipam.illinois.edu/wapidoc/additional/samplebodyrequests.html#samplebody-single).
+- Ability to load `.env` files to configure the client or the CLI.
+
 
 # Usage
 
