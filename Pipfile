@@ -15,6 +15,7 @@ pytest = "*"
 bandit = "*"
 "flake8" = "*"
 mkdocs = "*"
+httpie = "*"
 
 [packages]
 requests = "*"
