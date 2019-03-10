@@ -135,7 +135,7 @@ Commands:
   object            Performs various object operations.
   objects           Lists the available objects supports by the infoblox...
   request           Makes a custom request using the request object of...
-  schema            Gets the api schema.
+  schema            Shows the api schema.
   shell-completion  Installs shell completion.
 ```
 

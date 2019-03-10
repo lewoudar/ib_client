@@ -1,0 +1,18 @@
+site_name: ib-client documentation
+site_description: ib-client package documentation
+site_author: Kevin Tewouda
+
+nav:
+  - Home: index.md
+  - Installation: installation.md
+  - Usage: usage.md
+  - API: api.md
+  - CLI: cli.md
+  - Changelog: changelog.md
+
+theme: readthedocs
+
+markdown_extensions:
+  - toc:
+      permalink: true
+  - admonition
