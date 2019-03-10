@@ -3,7 +3,7 @@ import click
 
 from .types import STRING_LIST, DICT
 
-object_ref_option = click.option('-o', '--object-ref', help='Reference of the object to fetch.',
+object_ref_option = click.option('-o', '--object-ref', help='Reference of the infoblox object.',
                                  prompt='object reference')
 
 params_option = click.option('-p', '--params', help='Query parameters used to filter results.', type=DICT)
@@ -22,11 +22,11 @@ proxy_search_option = click.option('--proxy-search', type=click.Choice(['GM', 'L
                                    help='Processes requests on grid master or locally.')
 
 schedule_time_option = click.option('--schedule-time', type=int,
-                                    help='A timestamp representing the time to execute the operation.')
+                                    help='A timestamp representing the date to perform the operation.')
 
 schedule_now_option = click.option('--schedule-now', type=bool, default=False,
                                    help="Executes the operation at the current time."
-                                        " NB: you should set this option if you don't use option --schedule-time")
+                                        " NB: you should set this option only if you don't use option --schedule-time")
 
 schedule_predecessor_option = click.option('--schedule-predecessor-task', 'predecessor_task',
                                            help='Reference to a scheduled task that will be executed before'

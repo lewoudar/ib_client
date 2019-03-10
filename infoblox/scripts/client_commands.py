@@ -14,7 +14,7 @@ def available_objects(obj):
 @click.command('schema')
 @click.pass_obj
 def api_schema(obj):
-    """Gets the api schema."""
+    """Shows the api schema."""
     pretty_echo(obj.client.api_schema)
 
 

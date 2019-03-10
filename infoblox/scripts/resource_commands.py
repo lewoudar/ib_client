@@ -11,8 +11,8 @@ from .utils import pretty_echo
 
 
 @click.group('object', cls=DYMGroup)
-@click.option('-n', '--name', 'wapi_object', nargs=1, prompt='wapi object',
-              help='Wapi object you want to interact with.')
+@click.option('-n', '--name', 'wapi_object', nargs=1, prompt='infoblox object',
+              help='Infoblox object with which you want to interact.')
 @click.pass_obj
 def resource(obj, wapi_object):
     """Performs various object operations."""
@@ -25,14 +25,14 @@ def resource(obj, wapi_object):
 @resource.command()
 @click.pass_obj
 def documentation(obj):
-    """Show object api documentation."""
+    """Shows the documentation of the object's api."""
     pretty_echo(obj.resource.documentation)
 
 
 @resource.command()
 @click.pass_obj
 def fields(obj):
-    """List all object fields."""
+    """Lists all object fields."""
     pretty_echo(obj.resource.fields)
 
 
@@ -44,10 +44,10 @@ def functions(obj):
 
 
 @resource.command('field-info')
-@click.option('-n', '--name', prompt='field name', help='Name of the field whose information is required.')
+@click.option('-n', '--name', prompt='field name', help='Name of the field whose information is wanted.')
 @click.pass_obj
 def get_field_information(obj, name):
-    """Gets object's field information."""
+    """Shows the documentation of the object field."""
     try:
         pretty_echo(obj.resource.get_field_information(name))
     except FieldNotFoundError as e:
@@ -55,10 +55,10 @@ def get_field_information(obj, name):
 
 
 @resource.command('func-info')
-@click.option('-n', '--name', prompt='function name', help='Name of the function whose information is required.')
+@click.option('-n', '--name', prompt='function name', help='Name of the function whose information is wanted.')
 @click.pass_obj
 def get_function_information(obj, name):
-    """Gets object's function information."""
+    """Shows the documentation of the object function."""
     try:
         pretty_echo(obj.resource.get_function_information(name))
     except FunctionNotFoundError as e:
@@ -74,7 +74,7 @@ def get_function_information(obj, name):
 @proxy_search_option
 @click.pass_obj
 def get(obj, object_ref=None, params=None, return_fields=None, return_fields_plus=None, proxy_search=None):
-    """Performs HTTP GET operations to search objects."""
+    """Retrieves and shows objects matching given criteria."""
     try:
         pretty_echo(obj.resource.get(object_ref, params, return_fields, return_fields_plus, proxy_search))
     except HttpError as e:
@@ -89,7 +89,7 @@ def get(obj, object_ref=None, params=None, return_fields=None, return_fields_plu
 @click.pass_obj
 def count(obj, params=None, proxy_search=None):
     """
-    Counts and returns the number of objects corresponding to giving parameters.
+    Counts and shows the number of objects matching given parameters.
     """
     try:
         pretty_echo(obj.resource.count(params, proxy_search))
@@ -99,14 +99,14 @@ def count(obj, params=None, proxy_search=None):
         raise click.UsageError(e)
 
 
-@resource.command('func-call', short_help='Calls a function of an infoblox object.')
+@resource.command('func-call')
 # We don't use custom object_ref_option because object_ref is not required here (no prompt is necessary)
 @click.option('-o', '--object-ref', help='Reference of the object to fetch.', default=None)
 @click.option('-n', '--name', prompt='function name', help='Name of the function to call.')
 @arguments_option
 @click.pass_obj
 def function_call(obj, object_ref, name, arguments):
-    """Performs a function call of an object which reference is specified in input."""
+    """Calls a function of an infoblox object."""
     try:
         pretty_echo(obj.resource.func_call(object_ref, name, **arguments))
     except HttpError as e:
