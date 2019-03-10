@@ -4,7 +4,7 @@ import time
 import pytest
 
 from infoblox.exceptions import BadParameterError, FieldNotFoundError, SearchOnlyFieldError, \
-    FieldError, FunctionNotFoundError, IncompatibleOperationError, NotSearchableFieldError
+    FieldError, FunctionNotFoundError, IncompatibleOperationError, NotSearchableFieldError, MandatoryFieldError
 
 
 # To understand tests, translate class names in kebab-case to know the targeted method tested.
@@ -351,6 +351,22 @@ class TestCheckProxySearchValue:
             resource.check_proxy_search_value(proxy_search)
         except BadParameterError:
             pytest.fail(f'_check_proxy_search raises an error with value {proxy_search}')
+
+
+class TestCheckObjectReference:
+
+    def test_method_raises_error_when_object_ref_is_missing(self, resource):
+        with pytest.raises(MandatoryFieldError) as exc_info:
+            resource.check_object_reference()
+
+        assert 'object_ref is missing' == str(exc_info.value)
+
+    @pytest.mark.parametrize('object_ref', [4, {}, []])
+    def test_method_raises_error_when_object_ref_is_not_a_string(self, resource, object_ref):
+        with pytest.raises(BadParameterError) as exc_info:
+            resource.check_object_reference(object_ref)
+
+        assert f'object_ref must be a string but you provide {object_ref}' == str(exc_info.value)
 
 
 class TestProcessScheduleAndApprovalInfo:

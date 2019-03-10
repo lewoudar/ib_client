@@ -473,6 +473,9 @@ class MyResource(Resource):
     def validate_params(self, params):
         self._validate_params(params)
 
+    def check_object_reference(self, object_ref=None):
+        self._check_object_reference(object_ref)
+
     def check_proxy_search_value(self, proxy_search: str):
         self._check_proxy_search_value(proxy_search)
 
