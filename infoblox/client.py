@@ -126,7 +126,7 @@ class Client:
             raise ObjectNotFoundError(f'{name} is not a valid infoblox object')
         return Resource(self._session, self._url, name)
 
-    def custom_request(self, data: Json = None):
+    def custom_request(self, data: Json = None) -> Json:
         """
         Makes a custom request using the wapi request object.
         :param data: request payload.

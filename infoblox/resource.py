@@ -11,7 +11,7 @@ from .exceptions import (
 )
 from ._helpers import url_join, handle_http_error
 from ._settings import DEFAULT_CONNECT_TIMEOUT, DEFAULT_READ_TIMEOUT
-from .types import Schema
+from .types import Schema, Json
 
 
 class Resource:
@@ -300,13 +300,13 @@ class Resource:
         return parameters
 
     def get(self, object_ref: str = None, params: dict = None, return_fields: List[str] = None,
-            return_fields_plus: List[str] = None, proxy_search: str = None) -> Union[dict, List[dict]]:
+            return_fields_plus: List[str] = None, proxy_search: str = None) -> Json:
         """
         Performs get operations. Useful to get a specific object using its reference or just a few objects.
         If you know, you will get many objects, it is better to use the method "get_multiple".
         :param object_ref: reference of the object to fetch.
         :param params: query parameters to filter results. Look wapi documentation, for more information.
-        :param return_fields: default object fields to return.
+        :param return_fields: object fields to return.
         :param return_fields_plus: additional object fields (extensible attributes included) to return in addition of
         default fields.
         :param proxy_search: 'GM' or 'LOCAL'. See wapi documentation for more information.
@@ -345,7 +345,7 @@ class Resource:
                 next_page = False
             yield from json_response['result']
 
-    def count(self, params: dict = None, proxy_search: str = None):
+    def count(self, params: dict = None, proxy_search: str = None) -> int:
         """
         Counts the number of objects which correspond to the query parameters passed as argument.
         If no parameter is provided, it will return the total number of objects recorded in infoblox database.
@@ -425,7 +425,7 @@ class Resource:
     def create(self, schedule_time: int = None, schedule_now: bool = False, schedule_predecessor_task: str = None,
                schedule_warn_level: str = None, approval_comment: str = None, approval_query_mode: str = None,
                approval_ticket_number: int = None, return_fields: List[str] = None,
-               return_fields_plus: List[str] = None, **kwargs) -> Union[str, dict]:
+               return_fields_plus: List[str] = None, **kwargs) -> Json:
         """
         Create an infoblox object. Returns the reference of the created object or an object with fields specified
         via return_fields or return_fields_plus parameters.
@@ -480,7 +480,7 @@ class Resource:
     def update(self, object_ref: str = None, schedule_time: int = None, schedule_now: bool = False,
                schedule_predecessor_task: str = None, schedule_warn_level: str = None, approval_comment: str = None,
                approval_query_mode: str = None, approval_ticket_number: int = None, return_fields: List[str] = None,
-               return_fields_plus: List[str] = None, **kwargs) -> Union[str, dict]:
+               return_fields_plus: List[str] = None, **kwargs) -> Json:
         """
         Modify a specific object giving its reference. Returns the reference of the modified object or object
         with fields specified via parameters return_fields or return_fields_plus.
@@ -518,7 +518,7 @@ class Resource:
 
     def delete(self, object_ref: str = None, schedule_time: int = None, schedule_now: bool = False,
                schedule_predecessor_task: str = None, schedule_warn_level: str = None, approval_comment: str = None,
-               approval_query_mode: str = None, approval_ticket_number: int = None):
+               approval_query_mode: str = None, approval_ticket_number: int = None) -> Json:
         """
         Deletes a specific object giving its reference.
         object_ref: reference of the object to modify.
@@ -550,7 +550,7 @@ class Resource:
             if field['name'] == field_name:
                 return field
 
-    def func_call(self, object_ref: str = None, function_name: str = None, **kwargs):
+    def func_call(self, object_ref: str = None, function_name: str = None, **kwargs) -> Json:
         """
         Calls a function on an object.
         :param function_name: the name of the function to call
