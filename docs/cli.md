@@ -74,6 +74,18 @@ the argument is not provided. Example usage: `ib shell-completion /path/to/compl
 default behaviour is to overwrite. Example usage: `ib shell-completion --append`.
 - `-i`: this option if provided allows you to complete options and commands in a case insensitive manner.
 
+**Note:** On Powershell, you may encounter an error in non administrator mode and if you are in administrator mode,
+and you still encounter an error like the following:
+
+```console
+Set-ExecutionPolicy : Windows PowerShell updated your execution policy successfully, but the setting is overridden
+by a policy defined at a more specific scope.  Due to the override, your shell will retain its current effective
+execution policy of Bypass. Type "Get-ExecutionPolicy -List" to view your execution policy settings.
+For more information please see "Get-Help Set-ExecutionPolicy".
+```
+
+Please refer to [microsoft documentation](http://go.microsoft.com/fwlink/?LinkId=821719) to know how to fix the issue.
+
 ## `objects`
 
 This command lists all the available objects supported by the infoblox api. There are no options or arguments.

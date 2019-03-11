@@ -146,7 +146,7 @@ You can activate the shell completion on **bash**, **fish**, **zsh** and **Power
 ib shell-completion
 ```
 
-**Note:** On Powershell, you may encounter an error in administrator mode. And if you are in administrator mode,
+**Note:** On Powershell, you may encounter an error in non administrator mode and if you are in administrator mode,
 and you still encounter an error like the following:
 
 ```bash
@@ -156,7 +156,7 @@ execution policy of Bypass. Type "Get-ExecutionPolicy -List" to view your execut
 For more information please see "Get-Help Set-ExecutionPolicy".
 ```
 
-Please refer to [microsoft docs](http://go.microsoft.com/fwlink/?LinkId=821719) to know how to fix the issue.
+Please refer to [microsoft documentation](http://go.microsoft.com/fwlink/?LinkId=821719) to know how to fix the issue.
 
 We will now perform the same operations realized in the client part.
 
