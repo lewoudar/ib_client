@@ -16,6 +16,9 @@ bandit = "*"
 "flake8" = "*"
 mkdocs = "*"
 httpie = "*"
+setuptools = "*"
+wheel = "*"
+twine = "*"
 
 [packages]
 requests = "*"
