@@ -1,15 +1,36 @@
-from setuptools import find_packages, setup
+import os
+import re
 
-# noinspection PyProtectedMember
-from infoblox import __version__
+from setuptools import setup
+
+
+def get_version(package):
+    """
+    Return package version as listed in `__version__` in `init.py`.
+    """
+    with open(os.path.join(package, "__init__.py")) as f:
+        return re.search("__version__ = ['\"]([^'\"]+)['\"]", f.read()).group(1)
+
+
+def get_long_description():
+    """
+    Return the README.
+    """
+    with open("README.md", encoding="utf8") as f:
+        return f.read()
+
 
 setup(
-    name='infoblox-client',
-    version=__version__,
+    name='ib-client',
+    python_requires='>=3.6',
+    url='https://bitbucket.org/lewoudar/infoblox_client',
+    version=get_version('infoblox'),
     author='Kevin Tewouda',
     author_email='lewoudar@gmail.com',
     description='Infoblox client',
-    packages=find_packages(exclude=['tests']),
+    long_description=get_long_description(),
+    long_description_content_type='text/markdown',
+    packages=['infoblox'],
     include_package_data=True,
     zip_safe=False,
     install_requires=[
@@ -17,18 +38,18 @@ setup(
         'click',
         'pygments',
         'python-dotenv',
-        'click-didyoumean'
+        'click-didyoumean',
+        'click-completion'
     ],
     classifiers=[
         'Environment :: Web Environment',
         'Environment :: Console',
         'Intended Audience :: Developers',
-        'License :: OSI Approved :: BSD License',
+        'License :: OSI Approved :: Apache Software License',
         'Operating System :: OS Independent',
         'Topic :: Internet :: WWW/HTTP',
         'Topic :: Terminals',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3 :: Only',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
     ],
