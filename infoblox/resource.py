@@ -1,16 +1,16 @@
 import os
 import re
 import time
-from typing import List, Dict, Any, Union, Iterator
+from typing import List, Dict, Any, Iterator
 
 import requests
 
+from ._helpers import url_join, handle_http_error
+from ._settings import DEFAULT_CONNECT_TIMEOUT, DEFAULT_READ_TIMEOUT
 from .exceptions import (
     FieldNotFoundError, FunctionNotFoundError, BadParameterError, SearchOnlyFieldError,
     FieldError, IncompatibleOperationError, MandatoryFieldError, NotSearchableFieldError
 )
-from ._helpers import url_join, handle_http_error
-from ._settings import DEFAULT_CONNECT_TIMEOUT, DEFAULT_READ_TIMEOUT
 from .types import Schema, Json
 
 
