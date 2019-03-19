@@ -1,0 +1,21 @@
+environment:
+  matrix:
+    - PYTHON: "C:\\Python36-x64"
+    - PYTHON: "C:\\Python37-x64"
+
+install:
+  - "%PYTHON%\\python.exe -m pip install pipenv"
+  - "%PYTHON%\\Scripts\\pipenv install --dev"
+
+build: off
+
+test_script:
+  - "%PYTHON%\\Scripts\\pipenv run flake8"
+  - "%PYTHON%\\Scripts\\pipenv run  bandit -r infoblox"
+  - "%PYTHON%\\Scripts\\pipenv run pytest -v"
+
+after_test:
+  - "%PYTHON%\\Scripts\\pipenv run python setup.py bdist_wheel"
+
+artifacts:
+  - path: dist\*
