@@ -15,8 +15,7 @@ test_script:
   - "%PYTHON%\\Scripts\\pipenv run pytest -v"
 
 after_test:
-  - "%PYTHON%\\python.exe -m pip install codecov"
-  - "%PYTHON%\\Scripts\\codecov"
+  - "%PYTHON%\\Scripts\\pipenv run codecov"
   - "%PYTHON%\\Scripts\\pipenv run python setup.py bdist_wheel"
 
 artifacts:
