@@ -1,4 +1,14 @@
-# Why another infoblox client?
+# ib-client
+
+[![Pypi version](https://img.shields.io/pypi/v/ib-client.svg)](https://pypi.org/project/ib-client/)
+[![Build Status](https://travis-ci.com/lewoudar/ib_client.svg?branch=master)](https://travis-ci.com/lewoudar/ib_client)
+[![Windows Build Status](https://img.shields.io/appveyor/ci/lewoudar/ib-client/master.svg?label=Windows)](https://ci.appveyor.com/project/lewoudar/ib-client)
+[![Coverage Status](https://codecov.io/gh/lewoudar/ib_client/branch/master/graphs/badge.svg?branch=master&token=J6NUl2epJX)](https://codecov.io/gh/lewoudar/ib_client)
+[![Documentation Status](https://readthedocs.org/projects/ib-client/badge/?version=latest)](https://ib-client.readthedocs.io/en/latest/?badge=latest)
+
+The simplest infoblox client!
+
+## Why another infoblox client?
 
 This may be the first question that come to your mind if you know that there is already 
 a [client](https://infoblox-client.readthedocs.io/en/stable/) supported by Infoblox.
@@ -8,7 +18,7 @@ infoblox API through the instropection of its API. If you know the [wapi](https:
 documentation of an object / function, you will know how to use through the client which has a *simple* and
 *intuitive* API.
 
-# Installation
+## Installation
 
 ```bash
 pip install ib-client
@@ -16,11 +26,11 @@ pip install ib-client
 
 **N.B: ib-client works starting from python 3.6**
 
-# Documentation
+## Documentation
 
 The documentation is available at https://ib-client.readthedocs.io/en/stable/.
 
-# Features
+## Features
 
 - A client that allows you to perform all the operations available in the infoblox api.
 - A CLI that allows you to quickly perform the same operations as you will do with the client.
@@ -29,9 +39,9 @@ The documentation is available at https://ib-client.readthedocs.io/en/stable/.
 - Ability to load `.env` files to configure the client or the CLI.
 
 
-# Usage
+## Usage
 
-## Client
+### Client
 
 Here is how you can instantiate the client.
 
@@ -107,7 +117,7 @@ network.delete(object_ref='network/ZG5zLm5ldHdvcmskMTAuMS4wLjAvMTYvMA:10.1.0.0/1
 
 Simple enough!
 
-## CLI
+### CLI
 
 Before using the CLI, you will have to set 3 environment variables, otherwise you will have an error. The 3 environment
 variables are:
