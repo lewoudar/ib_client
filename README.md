@@ -18,7 +18,7 @@ pip install ib-client
 
 # Documentation
 
-The documentation is available at [https://docs.ib-client.org/en/stable](https://docs.ib-client.org/en/stable).
+The documentation is available at https://ib-client.readthedocs.io/en/stable/.
 
 # Features
 

@@ -1,6 +1,10 @@
 site_name: ib-client documentation
 site_description: ib-client package documentation
 site_author: Kevin Tewouda
+site_url: https://ib-client.readthedocs.io
+
+repo_url: https://github.com/lewoudar/ib_client/
+edit_uri: tree/master/docs
 
 nav:
   - Home: index.md

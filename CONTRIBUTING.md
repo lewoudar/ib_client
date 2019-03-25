@@ -6,7 +6,7 @@ Contributions of all kinds are welcome.
 
 ## Bug reports
 
-To submit a bug report, please use the [issue tracker](https://github.com/infobloxopen/ib-client/issues).
+To submit a bug report, please use the [issue tracker](https://github.com/lewoudar/ib_client/issues).
 
 Before trying to submit a pull request, make sure that there is not already a similar issue reported.
 
@@ -22,7 +22,7 @@ correct it. Look at **code contribution** section before submitting a pull reque
 
 ## Submit feedback
 
-To submit feedback, again use the [issue tracker](https://github.com/infobloxopen/ib-client/issues).
+To submit feedback, again use the [issue tracker](https://github.com/lewoudar/ib_client/issues).
 
 If you want to propose a new feature:
 - explain in detail how it would work.
@@ -42,19 +42,21 @@ single-quotes strings ('hello' instead of "hello") when presenting python code.
 
 Ready to contribute? Here is how to setup the project for local development.
 1. Fork the ib-client repo on Github.
-2. Clone your fork locally.
-    ```bash
-    git clone git@github.com:your_name_here/ib-client.git
-    ```
+
+2. Clone your fork locally. If you don't know how to proceed, 
+   take a look at this [article](https://help.github.com/en/articles/fork-a-repo).
+
 3. Install the dependencies needed by the project.
     ```bash
-    pipenv install
+    pip install -e .
     pipenv install --dev
     ```
+
 4. Create a branch for local development
     ```bash
     git checkout -b name-of-bug-or-feature
     ```
+
 5. When you are done with your work, you need to pass tests with flake8, bandit and pytest.
     ```bash
     flake8
@@ -62,12 +64,15 @@ Ready to contribute? Here is how to setup the project for local development.
     pytest
     ```
     To run a subset of the tests, you can use the standard [pytest filters](https://docs.pytest.org/en/latest/usage.html#specifying-tests-selecting-tests).
+
 6. Commit your changes and push your branch to GitHub.
     For the commit message, you should use the convention described [here](https://medium.com/@menuka/writing-meaningful-git-commit-messages-a62756b65c81).
-    It is the convention developed by the angular project. There is  just one notable difference I'm making for myself.
+    It is the convention developed by the angular project. There is  just one notable difference I'm adding.
     The verb must be conjugated **with the past tense** because I believe we are talking about a done action and not an
     action to be performed.
+
 7. Before submitting the pull request, you should verify that you include tests. There is also a code coverage
- configured with the project. You chan check the html report to know if your tests covered all the code you wrote.
- If your pull request add functionality, please update the documentation.
+   configured with the project. You can check the pull request status to know if your tests cover all the code you wrote.
+   If your pull request add functionality, please update the documentation.
+ 
 8. Submit your pull request through the GitHub website.
