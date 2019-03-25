@@ -23,7 +23,7 @@ def get_long_description():
 setup(
     name='ib-client',
     python_requires='>=3.6',
-    url='https://bitbucket.org/lewoudar/infoblox_client',
+    url='https://github.com/lewoudar/ib_client',
     version=get_version('infoblox'),
     author='Kevin Tewouda',
     author_email='lewoudar@gmail.com',
