@@ -12,4 +12,4 @@ install:
 script:
   - flake8
   - bandit -r infoblox
-  - pytest -v
+  - pytest

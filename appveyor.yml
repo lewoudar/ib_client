@@ -18,7 +18,7 @@ build: off
 test_script:
   - python -m pipenv run flake8
   - python -m pipenv run bandit -r infoblox
-  - python -m pipenv run pytest -v
+  - python -m pipenv run pytest
 
 after_test:
   - python -m pipenv run codecov
