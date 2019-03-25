@@ -36,7 +36,7 @@ deploy_script:
   - echo index-servers =                             >> %USERPROFILE%\\.pypirc
   - echo     pypi                                    >> %USERPROFILE%\\.pypirc
   - echo [pypi]                                      >> %USERPROFILE%\\.pypirc
-  - echo username=lewoudar                           >> %USERPROFILE%\\.pypirc
+  - echo username=le_woudar                           >> %USERPROFILE%\\.pypirc
   - echo password=%PYPI_PASSWORD%                    >> %USERPROFILE%\\.pypirc
   # deploy to pypi
   - set HOME=%USERPROFILE%
