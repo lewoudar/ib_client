@@ -4,6 +4,8 @@ init:
 environment:
   CODECOV_TOKEN:
     secure: hyKxQazxzW9GQ7M5tFI4jZVRLo1iAgl1gkepHQSO+BWjv2rR8Dp2lu+19JksQyH2
+  PYPI_PASSWORD:
+    secure: EVnP/W8bAzhX6YibEeg+Ag==
 
   matrix:
     - PYTHON: C:\Python36-x64
@@ -26,3 +28,17 @@ after_test:
 
 artifacts:
   - path: dist\*
+
+deploy_script:
+  - echo "Starting Artifact Deployment"
+  # populate pypirc file for twine
+  - echo [distutils]                                  > %USERPROFILE%\\.pypirc
+  - echo index-servers =                             >> %USERPROFILE%\\.pypirc
+  - echo     pypi                                    >> %USERPROFILE%\\.pypirc
+  - echo [pypi]                                      >> %USERPROFILE%\\.pypirc
+  - echo username=lewoudar                           >> %USERPROFILE%\\.pypirc
+  - echo password=%PYPI_PASSWORD%                    >> %USERPROFILE%\\.pypirc
+  # deploy to pypi
+  - set HOME=%USERPROFILE%
+  - ps: If ($env:APPVEYOR_REPO_TAG -eq "true") { Invoke-Expression "python -m pipenv run twine upload dist/*" 2>$null } Else { write-output "Not a tag commit, no deployment on pypi"}
+  - echo "Finished Artifact Deployment"
