@@ -18,7 +18,7 @@ documentation of an object / function, you will know how to use through the clie
 - A client that allows you to perform all the operations available in the infoblox api.
 - A CLI that allows you to quickly perform the same operations as you will do with the client.
 - Ability to perform custom 
-[requests](usage.md#perform-a-custom-request).
+[requests](usage.md#execute-a-custom-request).
 - Ability to load `.env` files to configure the client or the CLI.
 
 ## Contents
