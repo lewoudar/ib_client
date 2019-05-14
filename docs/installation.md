@@ -1,6 +1,6 @@
 # Installation
 
-To install ib-client, you will need tho have python and pip installed. After you can just enter the following command:
+To install ib-client, you will need to have python and pip installed. After you can just enter the following command:
 
 ```bash
 pip install ib-client

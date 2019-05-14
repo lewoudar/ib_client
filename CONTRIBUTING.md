@@ -18,7 +18,7 @@ Your message should contains as much information as possible such as:
 # Fix a bug
 
 To fix a bug, look at the issues reported and every issue with the label *bug* is open to anyone who would like to
-correct it. Look at **code contribution** section before submitting a pull request.
+correct it. Look at [code contribution](#code-contribution) section before submitting a pull request.
 
 ## Submit feedback
 
@@ -27,7 +27,7 @@ To submit feedback, again use the [issue tracker](https://github.com/lewoudar/ib
 If you want to propose a new feature:
 - explain in detail how it would work.
 - keep the scope as narrow as possible to make it easier to develop.
-- if you want to propose code, just read below the section **code contribution**.
+- if you want to propose code, just read below the section [code contribution](#code-contribution).
 
 ## Documentation
 
@@ -36,7 +36,7 @@ request. Just a few things to be aware of:
 - The documentation is built with [mkdocs](https://www.mkdocs.org/) using the markdown syntax.
 - Try to follow the style of the documentation, for example do not have lines longer than 120 characters, use
 single-quotes strings ('hello' instead of "hello") when presenting python code.
-- Look at the **code contribution** section for how to setup the project and commit convention.
+- Look at the [code contribution](#code-contribution) section for how to setup the project and commit convention.
 
 ## Code contribution
 
@@ -70,6 +70,8 @@ Ready to contribute? Here is how to setup the project for local development.
     It is the convention developed by the angular project. There is  just one notable difference I'm adding.
     The verb must be conjugated **with the past tense** because I believe we are talking about a done action and not an
     action to be performed.
+    Also for the scope, there is no particular set of scopes, so feel free to add what you thinks suits well your
+    changes. If you don't have one in mind, don't put anything.
 
 7. Before submitting the pull request, you should verify that you include tests. There is also a code coverage
    configured with the project. You can check the pull request status to know if your tests cover all the code you wrote.
