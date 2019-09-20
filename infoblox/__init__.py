@@ -1,12 +1,12 @@
-__version__ = '0.1.2'
+__version__ = '0.1.3'
 
 from .client import Client
-from .resource import Resource
 from .exceptions import (
     IBError, BadParameterError, HttpError, IncompatibleApiError, IncompatibleOperationError, MandatoryFieldError,
     FieldError, SearchOnlyFieldError, NotSearchableFieldError, NotFoundError, FileError, ObjectNotFoundError,
     FieldNotFoundError, FunctionNotFoundError
 )
+from .resource import Resource
 from .scripts.utils import pretty_echo, handle_json_arguments, parse_dict_items, handle_json_file
 
 __all__ = [

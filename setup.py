@@ -1,7 +1,7 @@
 import os
 import re
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 
 def get_version(package):
@@ -30,7 +30,7 @@ setup(
     description='Infoblox client',
     long_description=get_long_description(),
     long_description_content_type='text/markdown',
-    packages=['infoblox'],
+    packages=find_packages(exclude=['tests']),
     include_package_data=True,
     zip_safe=False,
     install_requires=[
