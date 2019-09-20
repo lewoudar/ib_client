@@ -1,5 +1,11 @@
 # Changelog
 
+## Version 0.1.3
+
+Released on 2019-09-20
+
+- Fixed an issue in setup.py that prevented to upload subpackages of the project during deployment.
+
 ## Version 0.1.2
 
 Released on 2019-04-13

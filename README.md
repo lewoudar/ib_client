@@ -5,6 +5,7 @@
 [![Windows Build Status](https://img.shields.io/appveyor/ci/lewoudar/ib-client/master.svg?label=Windows)](https://ci.appveyor.com/project/lewoudar/ib-client)
 [![Coverage Status](https://codecov.io/gh/lewoudar/ib_client/branch/master/graphs/badge.svg?branch=master&token=J6NUl2epJX)](https://codecov.io/gh/lewoudar/ib_client)
 [![Documentation Status](https://readthedocs.org/projects/ib-client/badge/?version=latest)](https://ib-client.readthedocs.io/en/latest/?badge=latest)
+[![License Apache 2](https://img.shields.io/hexpm/l/plug.svg)](http://www.apache.org/licenses/LICENSE-2.0)
 
 The simplest infoblox client!
 
