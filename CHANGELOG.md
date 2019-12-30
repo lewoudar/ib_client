@@ -1,5 +1,12 @@
 # Changelog
 
+## Version 0.X.X
+
+Released on ????-??-??
+
+- Added usage of nox package for test automation.
+- Changed .travis.yml and appveyor.yml to take in account nox.
+
 ## Version 0.1.3
 
 Released on 2019-09-20
