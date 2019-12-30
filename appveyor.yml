@@ -1,45 +1,24 @@
 init:
   - SET PATH=%PYTHON%;%PATH%
 
-environment:
-  CODECOV_TOKEN:
-    secure: hyKxQazxzW9GQ7M5tFI4jZVRLo1iAgl1gkepHQSO+BWjv2rR8Dp2lu+19JksQyH2
-  PYPI_PASSWORD:
-    secure: EVnP/W8bAzhX6YibEeg+Ag==
+matrix:
+  fast_finish: true
 
+environment:
   matrix:
     - PYTHON: C:\Python36-x64
+      NOX_SESSION: tests-3.6
     - PYTHON: C:\Python37-x64
+      NOX_SESSION: tests-3.7
     - PYTHON: C:\Python38-x64
+      NOX_SESSION: tests-3.8
+
 
 install:
-  - python -m pip install pipenv
-  - python -m pipenv install --dev
+  - python -m pip install nox
 
-build: off
+build_script:
+  - python -m pip install -e .
 
 test_script:
-  - python -m pipenv run flake8
-  - python -m pipenv run bandit -r infoblox
-  - python -m pipenv run pytest
-
-after_test:
-  - python -m pipenv run codecov
-  - python -m pipenv run python setup.py bdist_wheel
-
-artifacts:
-  - path: dist\*
-
-deploy_script:
-  - echo "Starting Artifact Deployment"
-  # populate pypirc file for twine
-  - echo [distutils]                                  > %USERPROFILE%\\.pypirc
-  - echo index-servers =                             >> %USERPROFILE%\\.pypirc
-  - echo     pypi                                    >> %USERPROFILE%\\.pypirc
-  - echo [pypi]                                      >> %USERPROFILE%\\.pypirc
-  - echo username=le_woudar                           >> %USERPROFILE%\\.pypirc
-  - echo password=%PYPI_PASSWORD%                    >> %USERPROFILE%\\.pypirc
-  # deploy to pypi
-  - set HOME=%USERPROFILE%
-  - ps: If ($env:APPVEYOR_REPO_TAG -eq "true") { Invoke-Expression "python -m pipenv run twine upload dist/*" 2>$null } Else { write-output "Not a tag commit, no deployment on pypi"}
-  - echo "Finished Artifact Deployment"
+  - python -m nox -s %NOX_SESSION%
