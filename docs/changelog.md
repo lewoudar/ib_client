@@ -2,7 +2,7 @@
 
 ## Version 0.1.4
 
-Released on 2020-05-01
+Released on 2020-01-05
 
 - Added usage of nox package for test automation.
 - Changed .travis.yml and appveyor.yml to take in account nox.
