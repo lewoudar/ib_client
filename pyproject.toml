@@ -1,0 +1,55 @@
+[tool.poetry]
+name = "ib-client"
+version = "0.1.3"
+description = "Infoblox client"
+authors = ["lewoudar <lewoudar@gmail.com>"]
+license = "Apache-2.0"
+readme = "README.md"
+keywords = ["infoblox", "client", "wapi", "cli", "api"]
+
+homepage = "https://ib-client.readthedocs.io/en/stable"
+repository = "https://github.com/lewoudar/ib_client"
+documentation = "https://ib-client.readthedocs.io/en/stable/usage"
+
+classifiers = [
+    "Environment :: Web Environment",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Terminals",
+]
+
+packages = [
+    {include = "infoblox"}
+]
+
+[tool.poetry.urls]
+"Bug Tracker" = "https://github.com/lewoudar/ib_client/issues"
+
+[tool.poetry.scripts]
+ib = "infoblox.scripts:cli"
+
+[tool.poetry.dependencies]
+python = "^3.6"
+requests = "^2.22.0"
+click = "^7.0"
+pygments = "^2.5.2"
+python-dotenv = "^0.10.3"
+click-didyoumean = "^0.0.3"
+click-completion = "^0.5.2"
+
+[tool.poetry.dev-dependencies]
+flask = "^1.1.1"
+pytest = "^5.3.2"
+pytest-mock = "^2.0.0"
+pytest-responses = "^0.4.0"
+pytest-cov = "^2.8.1"
+bandit = "^1.6.2"
+flake8 = "^3.7.9"
+httpie = "^1.0.3"
+mkdocs = "^1.0.4"
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
