@@ -1,4 +1,4 @@
-__version__ = '0.1.4.dev'
+__version__ = '0.1.4'
 
 from .client import Client
 from .exceptions import (
